@@ -4,6 +4,7 @@ COPY tailscale.repo /etc/yum.repos.d/
 RUN rpm-ostree install \
     bootc \
     cage \
+    docker \
     fedora-packager \
     gnome-console \
     greetd \
