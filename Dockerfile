@@ -28,6 +28,7 @@ RUN rpm-ostree install \
     tio \
     usbip \
     vim \
+    virt-manager \
     wf-recorder \
     zsh \
     https://github.com/getsops/sops/releases/download/v3.8.1/sops-3.8.1.x86_64.rpm
