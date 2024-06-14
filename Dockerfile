@@ -72,3 +72,7 @@ RUN rpm-ostree install \
     'pkgconfig(libfeedback-0.0)' \
     'pkgconfig(libsecret-1)' \
     'pkgconfig(libecal-2.0)'
+
+# Seems like ld is supposed to be set by update-alternatives, but isn't.
+# so: hax.
+RUN ln -sf /usr/bin/ld.bfd /usr/bin/ld
