@@ -12,6 +12,7 @@ RUN rpm-ostree install \
     cage \
     cargo \
     cmake \
+    copr-cli \
     codium \
     docker \
     fedora-packager \
