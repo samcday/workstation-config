@@ -22,6 +22,7 @@ RUN rpm-ostree install \
     gtkgreet \
     heimdall \
     libavcodec-freeworld \
+    meson \
     neofetch \
     podman-bootc \
     phrog \
