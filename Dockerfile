@@ -10,6 +10,7 @@ RUN rpm-ostree install \
     bootc \
     butane \
     cage \
+    cargo \
     codium \
     docker \
     fedora-packager \
