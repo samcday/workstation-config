@@ -3,6 +3,7 @@ FROM quay.io/fedora/fedora-silverblue:40
 RUN rpm-ostree install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 
 COPY *.repo /etc/yum.repos.d/
+
 RUN rpm-ostree install \
     android-tools \
     apk-tools \
@@ -22,6 +23,7 @@ RUN rpm-ostree install \
     libavcodec-freeworld \
     neofetch \
     podman-bootc \
+    phrog \
     screen \
     seatd \
     tailscale \
@@ -32,5 +34,3 @@ RUN rpm-ostree install \
     wf-recorder \
     zsh \
     https://github.com/getsops/sops/releases/download/v3.8.1/sops-3.8.1.x86_64.rpm
-
-
