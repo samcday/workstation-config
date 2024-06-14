@@ -33,4 +33,5 @@ RUN rpm-ostree install \
     virt-manager \
     wf-recorder \
     zsh \
+    https://github.com/derailed/k9s/releases/download/v0.32.4/k9s_linux_amd64.rpm \
     https://github.com/getsops/sops/releases/download/v3.8.1/sops-3.8.1.x86_64.rpm
