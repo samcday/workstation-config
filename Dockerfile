@@ -25,6 +25,7 @@ RUN rpm-ostree install \
     neofetch \
     podman-bootc \
     phrog \
+    rustup \
     screen \
     seatd \
     tailscale \
