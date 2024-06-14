@@ -17,6 +17,7 @@ RUN rpm-ostree install \
     fedora-packager \
     fedora-review \
     gcc \
+    git-lfs \
     gnome-console \
     gnome-tweaks \
     go \
@@ -29,6 +30,7 @@ RUN rpm-ostree install \
     neofetch \
     podman-bootc \
     phrog \
+    ripgrep \
     rustup \
     screen \
     seatd \
