@@ -7,18 +7,24 @@ COPY *.repo /etc/yum.repos.d/
 RUN rpm-ostree install \
     android-tools \
     apk-tools \
+    bind-utils \
     bootc \
     butane \
     cage \
     cargo \
+    cloc \
     cmake \
     copr-cli \
     codium \
+    dnf5 \
+    dnf5-plugins \
     docker \
     fedora-packager \
     fedora-review \
     gcc \
+    gdb \
     git-lfs \
+    git-subtree \
     gnome-console \
     gnome-tweaks \
     go \
@@ -26,12 +32,19 @@ RUN rpm-ostree install \
     greetd-fakegreet \
     gtkgreet \
     heimdall \
+    helm \
     libavcodec-freeworld \
     meson \
+    mpv \
     neofetch \
+    nodejs \
+    packit \
     podman-bootc \
     phrog \
+    restic \
     ripgrep \
+    rust-packaging \
+    rust2rpm \
     rustup \
     screen \
     seatd \
@@ -41,6 +54,8 @@ RUN rpm-ostree install \
     vim \
     virt-manager \
     wf-recorder \
+    xmlstarlet \
+    yt-dlp \
     zsh \
     https://github.com/derailed/k9s/releases/download/v0.32.4/k9s_linux_amd64.rpm \
     https://github.com/getsops/sops/releases/download/v3.8.1/sops-3.8.1.x86_64.rpm \
