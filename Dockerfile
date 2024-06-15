@@ -42,6 +42,7 @@ RUN dnf install -y \
     heimdall \
     helm \
     htop \
+    java-21-openjdk-devel \
     libavcodec-freeworld \
     meson \
     mpv \
