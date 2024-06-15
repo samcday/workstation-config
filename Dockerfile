@@ -1,10 +1,20 @@
 FROM quay.io/fedora/fedora-silverblue:40
 
-RUN rpm-ostree install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+RUN rpm-ostree install \
+    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm \
+    # dnf gets pulled in somewhere in the later install. Would be better to ensure it's excluded.
+    # Not quite sure how to do that so for now force it to be installed *now*, and then force the
+    # /usr/bin/dnf symlink to dnf5.
+    dnf \
+    dnf5 \
+    dnf5-plugins
+
+# That hacky symlink fix mentioned a few lines earlier.
+RUN ln -sf /usr/bin/dnf5 /usr/bin/dnf
 
 COPY *.repo /etc/yum.repos.d/
 
-RUN rpm-ostree install \
+RUN dnf install -y \
     android-tools \
     apk-tools \
     bind-utils \
@@ -16,8 +26,6 @@ RUN rpm-ostree install \
     cmake \
     copr-cli \
     codium \
-    dnf5 \
-    dnf5-plugins \
     docker \
     fedora-packager \
     fedora-review \
