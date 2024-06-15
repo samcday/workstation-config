@@ -94,3 +94,8 @@ RUN rpm-ostree install \
 # Seems like ld is supposed to be set by update-alternatives, but isn't.
 # so: hax.
 RUN ln -sf /usr/bin/ld.bfd /usr/bin/ld
+
+# Borrowed from bluefin.
+# Fixes broken /usr/bin/swtpm SELinux labels
+COPY swtpm-workaround.conf /usr/lib/tmpfiles.d/
+COPY swtpm-workaround.service /usr/lib/systemd/system/
