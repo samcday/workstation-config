@@ -71,3 +71,4 @@ RUN ln -sf /usr/bin/ld.bfd /usr/bin/ld
 # Fixes broken /usr/bin/swtpm SELinux labels
 COPY swtpm-workaround.conf /usr/lib/tmpfiles.d/
 COPY swtpm-workaround.service /usr/lib/systemd/system/
+RUN systemctl enable swtpm-workaround
