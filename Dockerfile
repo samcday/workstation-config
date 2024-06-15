@@ -41,6 +41,7 @@ RUN dnf install -y \
     gtkgreet \
     heimdall \
     helm \
+    htop \
     libavcodec-freeworld \
     meson \
     mpv \
