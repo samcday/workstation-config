@@ -82,3 +82,13 @@ RUN ln -sf /usr/bin/ld.bfd /usr/bin/ld
 COPY swtpm-workaround.conf /usr/lib/tmpfiles.d/
 COPY swtpm-workaround.service /usr/lib/systemd/system/
 RUN systemctl enable swtpm-workaround
+
+# Update initrd to include TPM2 disk unlock and include vfio-pci early (to denylist PCI devices,
+# like NVIDIA GPU on my desktop)
+COPY dracut.conf /usr/lib/dracut/dracut.conf.d/10-sam.conf
+RUN export KERNEL_VERSION="$(rpm -qa kernel --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}')" && \
+    stock_arguments=$(lsinitrd "/lib/modules/${KERNEL_VERSION}/initramfs.img"  | grep '^Arguments: ' | sed 's/^Arguments: //') && \
+    mkdir -p /tmp/dracut /var/roothome && \
+    bash <(/usr/bin/echo "dracut -f /lib/modules/${KERNEL_VERSION}/initramfs.img $stock_arguments") && \
+    rm -rf /var/* /tmp/*  && \
+    ostree container commit
