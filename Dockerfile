@@ -17,6 +17,7 @@ COPY *.repo /etc/yum.repos.d/
 RUN dnf install -y \
     android-tools \
     apk-tools \
+    bat \
     bind-utils \
     bootc \
     butane \
