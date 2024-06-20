@@ -44,6 +44,9 @@ RUN dnf install -y \
     helm \
     htop \
     java-21-openjdk-devel \
+    kubeadm \
+    kubectl \
+    kubelet \
     libavcodec-freeworld \
     meson \
     mpv \
