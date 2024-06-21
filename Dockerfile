@@ -36,7 +36,8 @@ RUN dnf install -y \
     git-subtree \
     gnome-console \
     gnome-tweaks \
-    go \
+    golang \
+    golang-bin \
     greetd \
     greetd-fakegreet \
     gtkgreet \
