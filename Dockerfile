@@ -52,6 +52,7 @@ RUN dnf install -y \
     mpv \
     neofetch \
     nodejs \
+    openssl \
     packit \
     podman-bootc \
     phrog \
