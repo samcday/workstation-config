@@ -79,9 +79,10 @@ RUN dnf install -y \
 RUN dnf builddep -y phosh
 RUN dnf builddep -y phrog
 
-# Seems like ld is supposed to be set by update-alternatives, but isn't.
-# so: hax.
+# Alternatives are broken. Should figure out why.
+# for now: hax.
 RUN ln -sf /usr/bin/ld.bfd /usr/bin/ld
+RUN ln -sf /usr/lib/golang/bin/go /usr/bin/go
 
 # Borrowed from bluefin.
 # Fixes broken /usr/bin/swtpm SELinux labels
