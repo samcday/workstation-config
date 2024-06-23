@@ -66,6 +66,7 @@ RUN dnf install -y \
     seatd \
     tailscale \
     tio \
+    tpm2-tss-engine \
     usbip \
     vim \
     virt-manager \
