@@ -44,6 +44,7 @@ RUN dnf install -y \
     heimdall \
     helm \
     htop \
+    iperf3 \
     java-21-openjdk-devel \
     kubeadm \
     kubectl \
