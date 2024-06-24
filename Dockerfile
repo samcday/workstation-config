@@ -71,6 +71,7 @@ RUN dnf install -y \
     tpm2-tss-engine-utilities \
     usbip \
     vim \
+    virt-install \
     virt-manager \
     wf-recorder \
     xmlstarlet \
