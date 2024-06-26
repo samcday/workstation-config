@@ -67,6 +67,7 @@ RUN dnf install -y \
     seatd \
     tailscale \
     tio \
+    tofu \
     tpm2-tss-engine \
     tpm2-tss-engine-utilities \
     usbip \
