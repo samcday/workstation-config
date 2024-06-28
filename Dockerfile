@@ -74,6 +74,7 @@ RUN dnf install -y \
     vim \
     virt-install \
     virt-manager \
+    wl-clipboard \
     wf-recorder \
     xmlstarlet \
     yt-dlp \
