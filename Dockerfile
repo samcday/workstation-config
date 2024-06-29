@@ -28,6 +28,7 @@ RUN dnf install -y \
     copr-cli \
     codium \
     docker \
+    fcgiwrap \
     fedora-packager \
     fedora-review \
     gcc \
@@ -53,6 +54,7 @@ RUN dnf install -y \
     meson \
     mpv \
     neofetch \
+    nginx \
     nodejs \
     openssl \
     packit \
