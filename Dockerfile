@@ -15,6 +15,7 @@ RUN ln -sf /usr/bin/dnf5 /usr/bin/dnf
 COPY *.repo /etc/yum.repos.d/
 
 RUN dnf install -y \
+    age \
     android-tools \
     apk-tools \
     bat \
