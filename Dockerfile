@@ -40,7 +40,6 @@ RUN dnf install -y \
     gnome-tweaks \
     golang \
     golang-bin \
-    golang-sigs-k8s-kustomize \
     greetd \
     greetd-fakegreet \
     gtkgreet \
