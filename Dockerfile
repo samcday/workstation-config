@@ -32,6 +32,7 @@ RUN dnf install -y \
     fcgiwrap \
     fedora-packager \
     fedora-review \
+    fzf \
     gcc \
     gdb \
     git-lfs \
