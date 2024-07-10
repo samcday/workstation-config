@@ -43,6 +43,7 @@ RUN dnf install -y \
     greetd \
     greetd-fakegreet \
     gtkgreet \
+    hcloud \
     heimdall \
     helm \
     htop \
