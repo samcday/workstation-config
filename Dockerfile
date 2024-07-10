@@ -70,6 +70,7 @@ RUN dnf install -y \
     screen \
     seatd \
     tailscale \
+    tcpdump \
     tio \
     tofu \
     tpm2-tss-engine \
