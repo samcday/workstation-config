@@ -57,6 +57,7 @@ RUN dnf install -y \
     meson \
     mpv \
     neofetch \
+    net-tools \
     nginx \
     nodejs \
     openssl \
