@@ -93,7 +93,7 @@ RUN dnf install -y \
 RUN dnf builddep -y phosh
 RUN dnf builddep -y phrog
 
-RUN sudo dnf install --enablerepo=updates-testing --refresh --advisory=FEDORA-2024-1c87e1935d gmobile
+RUN sudo dnf install -y --enablerepo=updates-testing --refresh --advisory=FEDORA-2024-1c87e1935d gmobile
 
 # Alternatives are broken. Should figure out why.
 # for now: hax.
