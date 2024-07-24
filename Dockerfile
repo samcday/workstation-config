@@ -63,7 +63,6 @@ RUN dnf install -y \
     openssl \
     packit \
     podman-bootc \
-    phrog \
     restic \
     ripgrep \
     rust-packaging \
@@ -90,10 +89,10 @@ RUN dnf install -y \
     https://github.com/derailed/k9s/releases/download/v0.32.5/k9s_linux_amd64.rpm \
     https://github.com/getsops/sops/releases/download/v3.9.0/sops-3.9.0-1.x86_64.rpm
 
+RUN dnf install -y --enablerepo=updates-testing --refresh --advisory=FEDORA-2024-623fa42e17 phoc
+
 RUN dnf builddep -y phosh
 RUN dnf builddep -y phrog
-
-RUN dnf install -y --enablerepo=updates-testing --refresh --advisory=FEDORA-2024-623fa42e17 phoc
 
 # Alternatives are broken. Should figure out why.
 # for now: hax.
