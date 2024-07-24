@@ -64,6 +64,7 @@ RUN dnf install -y \
     packit \
     phrog \
     podman-bootc \
+    postgresql \
     restic \
     ripgrep \
     rust-packaging \
