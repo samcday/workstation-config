@@ -71,6 +71,7 @@ RUN dnf install -y \
     rustup \
     screen \
     seatd \
+    strace \
     tailscale \
     tcpdump \
     tio \
