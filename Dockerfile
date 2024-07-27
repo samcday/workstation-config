@@ -62,6 +62,7 @@ RUN dnf install -y \
     nodejs \
     openssl \
     packit \
+    perl-FindBin \
     phrog \
     podman-bootc \
     postgresql \
