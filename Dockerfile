@@ -32,9 +32,11 @@ RUN dnf install -y \
     fcgiwrap \
     fedora-packager \
     fedora-review \
+    ftp \
     fzf \
     gcc \
     gdb \
+    git-credential-libsecret \
     git-lfs \
     git-subtree \
     gnome-console \
