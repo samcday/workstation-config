@@ -43,6 +43,7 @@ RUN dnf install -y \
     git-credential-libsecret \
     git-lfs \
     git-subtree \
+    glibc-devel.i686 \
     gnome-console \
     gnome-tweaks \
     golang \
