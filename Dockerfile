@@ -20,6 +20,7 @@ RUN dnf install -y \
     apk-tools \
     bat \
     bind-utils \
+    bison \
     bootc \
     butane \
     cage \
@@ -32,9 +33,12 @@ RUN dnf install -y \
     fcgiwrap \
     fedora-packager \
     fedora-review \
+    flex \
     ftp \
     fzf \
     gcc \
+    gcc-c++ \
+    gcc-gnat \
     gdb \
     git-credential-libsecret \
     git-lfs \
@@ -58,6 +62,7 @@ RUN dnf install -y \
     libavcodec-freeworld \
     meson \
     mpv \
+    ncurses-devel \
     neofetch \
     net-tools \
     nginx \
