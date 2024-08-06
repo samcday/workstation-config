@@ -68,6 +68,7 @@ RUN dnf install -y \
     nginx \
     nodejs \
     openssl \
+    openssl-devel \
     packit \
     perl-FindBin \
     phrog \
