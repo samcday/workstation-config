@@ -32,6 +32,7 @@ RUN dnf install -y \
     docker \
     fcgiwrap \
     fedora-packager \
+    fedora-repos-rawhide \
     fedora-review \
     flex \
     ftp \
