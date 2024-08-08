@@ -44,6 +44,7 @@ RUN dnf install -y \
     git-lfs \
     git-subtree \
     glibc-devel.i686 \
+    gnome-bluetooth-libs-devel \
     gnome-console \
     gnome-tweaks \
     golang \
