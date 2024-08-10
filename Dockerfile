@@ -108,7 +108,8 @@ RUN dnf install -y \
 RUN dnf builddep -y phosh
 RUN dnf builddep -y phrog
 
-RUN dnf upgrade -y --enablerepo=updates-testing --refresh --advisory=FEDORA-2024-623fa42e17 phoc
+RUN dnf upgrade -y --enablerepo=rawhide gmobile
+RUN dnf upgrade -y --enablerepo=rawhide phoc
 
 # Alternatives are broken. Should figure out why.
 # for now: hax.
