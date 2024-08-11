@@ -14,6 +14,9 @@ RUN ln -sf /usr/bin/dnf5 /usr/bin/dnf
 
 COPY *.repo /etc/yum.repos.d/
 
+RUN dnf copr enable gmaglione/podman-bootc
+RUN dnf copr enable samcday/phrog
+
 RUN dnf install -y \
     age \
     android-tools \
