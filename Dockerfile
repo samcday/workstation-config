@@ -55,6 +55,7 @@ RUN dnf install -y \
     golang-bin \
     greetd \
     greetd-fakegreet \
+    gsound-devel \
     gtkgreet \
     hcloud \
     heimdall \
@@ -66,6 +67,7 @@ RUN dnf install -y \
     kubectl \
     kubelet \
     libavcodec-freeworld \
+    libnotify-devel \
     meson \
     mpv \
     ncurses-devel \
