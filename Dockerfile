@@ -80,6 +80,8 @@ RUN dnf install -y \
     phrog \
     podman-bootc \
     postgresql \
+    python3-pygments \
+    python3-typogrify \
     rclone \
     restic \
     ripgrep \
