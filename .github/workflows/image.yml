@@ -2,13 +2,12 @@ name: Image
 
 on:
   schedule:
-    - cron: '22 9 * * *'
+    - cron: 22 9 * * *
   push:
-    branches: [ "main" ]
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
+    branches: [main]
   pull_request:
-    branches: [ "main" ]
+    branches: [main]
+  workflow_dispatch: {}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
