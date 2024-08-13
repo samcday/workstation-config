@@ -129,6 +129,8 @@ COPY swtpm-workaround.conf /usr/lib/tmpfiles.d/
 COPY swtpm-workaround.service /usr/lib/systemd/system/
 RUN systemctl enable swtpm-workaround
 
+RUN echo 'SELINUX=disabled' > /etc/selinux/config
+
 # Update initrd to include TPM2 disk unlock and include vfio-pci early (to denylist PCI devices,
 # like NVIDIA GPU on my desktop)
 COPY dracut.conf /usr/lib/dracut/dracut.conf.d/10-sam.conf
