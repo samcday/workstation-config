@@ -123,12 +123,8 @@ RUN dnf upgrade -y --enablerepo=rawhide phoc
 RUN ln -sf /usr/bin/ld.bfd /usr/bin/ld
 RUN ln -sf /usr/lib/golang/bin/go /usr/bin/go
 
-# Borrowed from bluefin.
-# Fixes broken /usr/bin/swtpm SELinux labels
-COPY swtpm-workaround.conf /usr/lib/tmpfiles.d/
-COPY swtpm-workaround.service /usr/lib/systemd/system/
-RUN systemctl enable swtpm-workaround
-
+# Disable SELinux for now until the underlying relabelling issues are resolved
+# (#2)
 RUN echo 'SELINUX=disabled' > /etc/selinux/config
 
 # Update initrd to include TPM2 disk unlock and include vfio-pci early (to denylist PCI devices,
