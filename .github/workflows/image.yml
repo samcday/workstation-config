@@ -85,7 +85,7 @@ jobs:
         run: |
           IMAGE=$(podman pull ${{ steps.rechunk.outputs.ref }})
           sudo rm -rf ${{ steps.rechunk.outputs.output }}
-          podman tag $IMAGE ${{ env.IMAGE_NAME }}:$tag
+          podman tag $IMAGE ${{ env.IMAGE_NAME }}:main
 
       - name: Push To GHCR
         uses: redhat-actions/push-to-registry@v2
