@@ -32,6 +32,7 @@ RUN dnf install -y \
     cmake \
     copr-cli \
     codium \
+    debootstrap \
     docker \
     fcgiwrap \
     fedora-packager \
