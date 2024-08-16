@@ -114,6 +114,7 @@ RUN dnf install -y \
     https://github.com/getsops/sops/releases/download/v3.9.0/sops-3.9.0-1.x86_64.rpm
 
 RUN dnf builddep -y phosh
+RUN dnf builddep -y phosh-mobile-settings
 RUN dnf builddep -y phrog
 
 RUN dnf upgrade -y --enablerepo=rawhide gmobile
