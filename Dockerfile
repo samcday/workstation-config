@@ -15,7 +15,7 @@ RUN ln -sf /usr/bin/dnf5 /usr/bin/dnf
 COPY *.repo /etc/yum.repos.d/
 
 RUN dnf copr enable -y gmaglione/podman-bootc
-RUN dnf copr enable -y samcday/phrog
+RUN dnf copr enable -y samcday/phrog-nightly
 
 RUN dnf install -y \
     age \
