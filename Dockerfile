@@ -17,6 +17,12 @@ COPY *.repo /etc/yum.repos.d/
 RUN dnf copr enable -y gmaglione/podman-bootc
 RUN dnf copr enable -y samcday/phrog
 
+RUN dnf install --repo rawhide -y \
+    gmobile \
+    phoc \
+    phosh \
+    phosh-mobile-settings
+
 RUN dnf install -y \
     age \
     android-tools \
@@ -113,12 +119,10 @@ RUN dnf install -y \
     https://github.com/derailed/k9s/releases/download/v0.32.5/k9s_linux_amd64.rpm \
     https://github.com/getsops/sops/releases/download/v3.9.0/sops-3.9.0-1.x86_64.rpm
 
-RUN dnf builddep -y phosh
-RUN dnf builddep -y phosh-mobile-settings
-RUN dnf builddep -y phrog
-
-RUN dnf upgrade -y --enablerepo=rawhide gmobile
-RUN dnf upgrade -y --enablerepo=rawhide phoc
+RUN dnf builddep --repo rawhide -y \
+    phosh \
+    phosh-mobile-settings \
+    phrog
 
 # Alternatives are broken. Should figure out why.
 # for now: hax.
