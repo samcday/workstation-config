@@ -16,13 +16,6 @@ COPY *.repo /etc/yum.repos.d/
 
 RUN dnf copr enable -y gmaglione/podman-bootc
 RUN dnf copr enable -y samcday/phrog
-RUN dnf install -y fedora-repos-rawhide
-
-RUN dnf install --repo rawhide -y \
-    gmobile \
-    phoc \
-    phosh \
-    phosh-mobile-settings
 
 RUN dnf install -y \
     age \
@@ -43,6 +36,7 @@ RUN dnf install -y \
     docker \
     fcgiwrap \
     fedora-packager \
+    fedora-repos-rawhide \
     fedora-review \
     flex \
     ftp \
@@ -118,6 +112,12 @@ RUN dnf install -y \
     zsh \
     https://github.com/derailed/k9s/releases/download/v0.32.5/k9s_linux_amd64.rpm \
     https://github.com/getsops/sops/releases/download/v3.9.0/sops-3.9.0-1.x86_64.rpm
+
+RUN dnf upgrade --repo rawhide -y \
+    gmobile \
+    phoc \
+    phosh \
+    phosh-mobile-settings
 
 RUN dnf builddep --repo rawhide -y \
     phosh \
