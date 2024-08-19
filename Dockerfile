@@ -16,6 +16,7 @@ COPY *.repo /etc/yum.repos.d/
 
 RUN dnf copr enable -y gmaglione/podman-bootc
 RUN dnf copr enable -y samcday/phrog
+RUN dnf install -y fedora-repos-rawhide
 
 RUN dnf install --repo rawhide -y \
     gmobile \
@@ -42,7 +43,6 @@ RUN dnf install -y \
     docker \
     fcgiwrap \
     fedora-packager \
-    fedora-repos-rawhide \
     fedora-review \
     flex \
     ftp \
