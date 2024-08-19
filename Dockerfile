@@ -122,6 +122,8 @@ RUN dnf upgrade --repo rawhide -y \
 RUN dnf builddep --repo rawhide -y \
     phosh \
     phosh-mobile-settings \
+
+RUN dnf builddep -y \
     phrog
 
 # Alternatives are broken. Should figure out why.
