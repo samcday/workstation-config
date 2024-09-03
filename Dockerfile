@@ -68,7 +68,10 @@ RUN dnf install -y \
     kubectl \
     kubelet \
     libavcodec-freeworld \
+    jbigkit-devel \
+    liblerc-devel \
     libnotify-devel \
+    libunistring-devel \
     meson \
     mpv \
     ncurses-devel \
