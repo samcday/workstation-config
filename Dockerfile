@@ -98,6 +98,7 @@ RUN dnf install -y \
     screen \
     seatd \
     strace \
+    sway \
     tailscale \
     tcpdump \
     tio \
