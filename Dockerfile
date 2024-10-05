@@ -79,6 +79,8 @@ RUN dnf install -y \
     net-tools \
     nginx \
     nodejs \
+    obs-studio \
+    obs-studio-devel \
     openssl \
     openssl-devel \
     packit \
