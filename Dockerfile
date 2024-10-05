@@ -23,6 +23,7 @@ RUN dnf install -y \
     apk-tools \
     bat \
     bind-utils \
+    binutils-devel \
     bison \
     bootc \
     butane \
@@ -33,6 +34,7 @@ RUN dnf install -y \
     copr-cli \
     codium \
     debootstrap \
+    dejavu-sans-mono-fonts \
     docker \
     fcgiwrap \
     fedora-packager \
@@ -71,7 +73,11 @@ RUN dnf install -y \
     jbigkit-devel \
     liblerc-devel \
     libnotify-devel \
+    libsamplerate-devel \
     libunistring-devel \
+    libXScrnSaver-devel \
+    libXpresent-devel \
+    libxkbcommon-x11-devel \
     meson \
     mpv \
     ncurses-devel \
@@ -86,6 +92,7 @@ RUN dnf install -y \
     packit \
     perl-FindBin \
     phrog \
+    pipewire-devel \
     podman-bootc \
     postgresql \
     python3-dbusmock \
@@ -99,6 +106,7 @@ RUN dnf install -y \
     rustup \
     screen \
     seatd \
+    spice-protocol \
     strace \
     sway \
     tailscale \
