@@ -112,6 +112,7 @@ RUN dnf install -y \
     tailscale \
     tcpdump \
     tio \
+    tmux \
     tofu \
     tpm2-tss-engine \
     tpm2-tss-engine-utilities \
