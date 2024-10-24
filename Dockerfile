@@ -135,6 +135,7 @@ RUN dnf builddep -y \
 
 RUN dnf upgrade --repo rawhide -y \
     gmobile \
+    gsettings-desktop-schemas \
     phoc \
     phosh \
     phosh-mobile-settings
