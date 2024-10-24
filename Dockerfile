@@ -78,6 +78,8 @@ RUN dnf install -y \
     libXScrnSaver-devel \
     libXpresent-devel \
     libxkbcommon-x11-devel \
+    lshw \
+    lstopo \
     meson \
     mpv \
     ncurses-devel \
