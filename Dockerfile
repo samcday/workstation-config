@@ -36,6 +36,7 @@ RUN dnf install -y \
     debootstrap \
     dejavu-sans-mono-fonts \
     docker \
+    docker-buildx \
     fcgiwrap \
     fedora-packager \
     fedora-repos-rawhide \
