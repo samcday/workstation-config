@@ -1,16 +1,9 @@
-FROM quay.io/fedora/fedora-silverblue:40
+FROM quay.io/fedora/fedora-silverblue:41
 
 RUN rpm-ostree install \
     https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm \
-    # dnf gets pulled in somewhere in the later install. Would be better to ensure it's excluded.
-    # Not quite sure how to do that so for now force it to be installed *now*, and then force the
-    # /usr/bin/dnf symlink to dnf5.
-    dnf \
     dnf5 \
     dnf5-plugins
-
-# That hacky symlink fix mentioned a few lines earlier.
-RUN ln -sf /usr/bin/dnf5 /usr/bin/dnf
 
 COPY *.repo /etc/yum.repos.d/
 
@@ -36,6 +29,7 @@ RUN dnf install -y \
     debootstrap \
     dejavu-sans-mono-fonts \
     docker \
+    fastfetch \
     fcgiwrap \
     fedora-packager \
     fedora-repos-rawhide \
@@ -83,7 +77,6 @@ RUN dnf install -y \
     meson \
     mpv \
     ncurses-devel \
-    neofetch \
     net-tools \
     nginx \
     nodejs \
