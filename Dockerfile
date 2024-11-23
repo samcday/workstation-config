@@ -64,6 +64,7 @@ RUN dnf install -y \
     kubectl \
     kubelet \
     libavcodec-freeworld \
+    mullvad-vpn \
     jbigkit-devel \
     liblerc-devel \
     libnotify-devel \
