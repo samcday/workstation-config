@@ -121,7 +121,7 @@ RUN dnf install -y \
     yt-dlp \
     yq \
     zsh \
-    https://github.com/derailed/k9s/releases/download/v0.32.5/k9s_linux_amd64.rpm \
+    https://github.com/derailed/k9s/releases/download/v0.32.7/k9s_linux_amd64.rpm \
     https://github.com/getsops/sops/releases/download/v3.9.2/sops-3.9.2-1.x86_64.rpm
 
 RUN dnf install -y --repo=rawhide docker-buildx
