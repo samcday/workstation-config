@@ -68,6 +68,7 @@ RUN dnf install -y \
     jbigkit-devel \
     liblerc-devel \
     libnotify-devel \
+    libphosh-devel \
     libsamplerate-devel \
     libunistring-devel \
     libXScrnSaver-devel \

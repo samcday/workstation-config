@@ -70,10 +70,9 @@ jobs:
             --format "docker" \
             --tag raw-img .
 
-      # Reprocess raw-img using rechunker which will delete it
-      - name: Run Rechunker
+      # Reprocess raw-img using rechunk which will delete it
+      - uses: hhd-dev/rechunk@v0.8.6
         id: rechunk
-        uses: hhd-dev/rechunk@v0.8.6
         with:
           rechunk: 'ghcr.io/hhd-dev/rechunk:v0.8.6'
           ref: 'raw-img'
