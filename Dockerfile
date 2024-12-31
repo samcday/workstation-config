@@ -29,6 +29,7 @@ RUN dnf install -y \
     debootstrap \
     dejavu-sans-mono-fonts \
     docker \
+    docker-buildx \
     fastfetch \
     fcgiwrap \
     fedora-packager \
@@ -124,16 +125,7 @@ RUN dnf install -y \
     https://github.com/derailed/k9s/releases/download/v0.32.7/k9s_linux_amd64.rpm \
     https://github.com/getsops/sops/releases/download/v3.9.2/sops-3.9.2-1.x86_64.rpm
 
-RUN dnf install -y --repo=rawhide docker-buildx
-
 RUN dnf builddep -y \
-    phosh \
-    phosh-mobile-settings
-
-RUN dnf upgrade --repo rawhide -y \
-    gmobile \
-    gsettings-desktop-schemas \
-    phoc \
     phosh \
     phosh-mobile-settings
 
