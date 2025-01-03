@@ -43,6 +43,7 @@ RUN dnf install -y \
     gcc-c++ \
     gcc-gnat \
     gdb \
+    giflib-devel \
     git-credential-libsecret \
     git-lfs \
     git-subtree \
