@@ -129,6 +129,7 @@ RUN dnf install -y \
     https://github.com/getsops/sops/releases/download/v3.9.2/sops-3.9.2-1.x86_64.rpm
 
 RUN dnf builddep -y \
+    gnome-software \
     phoc \
     phosh \
     phosh-mobile-settings
