@@ -104,6 +104,7 @@ RUN dnf install -y \
     rustup \
     screen \
     seatd \
+    shellcheck \
     spice-protocol \
     strace \
     sway \
