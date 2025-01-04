@@ -123,6 +123,7 @@ RUN dnf install -y \
     wl-clipboard \
     wf-recorder \
     xmlstarlet \
+    xorg-x11-server-Xwayland-devel \
     yt-dlp \
     yq \
     zsh \
