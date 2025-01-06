@@ -111,6 +111,7 @@ RUN dnf install -y \
     spice-protocol \
     strace \
     sway \
+    syncthing \
     tailscale \
     tcpdump \
     tio \
