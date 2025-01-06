@@ -10,6 +10,7 @@ COPY *.repo /etc/yum.repos.d/
 RUN dnf copr enable -y gmaglione/podman-bootc
 RUN dnf copr enable -y samcday/phrog-nightly
 RUN dnf copr enable -y samcday/phosh-nightly
+RUN dnf copr enable -y samcday/pmbootstrap
 
 RUN dnf install -y \
     age \
@@ -92,6 +93,7 @@ RUN dnf install -y \
     perl-FindBin \
     phrog \
     pipewire-devel \
+    pmbootstrap \
     podman-bootc \
     postgresql \
     python3-dbusmock \
