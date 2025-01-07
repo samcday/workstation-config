@@ -41,6 +41,7 @@ RUN dnf install -y \
     ftp \
     fzf \
     gcc \
+    gcc-aarch64-linux-gnu \
     gcc-c++ \
     gcc-gnat \
     gdb \
