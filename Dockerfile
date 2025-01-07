@@ -90,6 +90,7 @@ RUN dnf install -y \
     obs-studio-devel \
     openssl \
     openssl-devel \
+    openssl-devel-engine \
     packit \
     perl-FindBin \
     phrog \
