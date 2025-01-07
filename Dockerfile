@@ -24,6 +24,7 @@ RUN dnf install -y \
     butane \
     cage \
     cargo \
+    clangd \
     cloc \
     cmake \
     copr-cli \
