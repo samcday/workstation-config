@@ -66,6 +66,7 @@ RUN dnf install -y \
     htop \
     iperf3 \
     java-21-openjdk-devel \
+    kiwi \
     kubeadm \
     kubectl \
     kubelet \
