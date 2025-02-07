@@ -36,6 +36,7 @@ RUN dnf install -y \
     dejavu-sans-mono-fonts \
     docker \
     docker-buildx \
+    dtc \
     fastfetch \
     fcgiwrap \
     fedora-packager \
