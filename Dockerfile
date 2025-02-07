@@ -17,6 +17,7 @@ RUN dnf install -y \
     age \
     android-tools \
     apk-tools \
+    arm-none-eabi-gcc \
     bat \
     bind-utils \
     binutils-devel \
