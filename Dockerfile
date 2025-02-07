@@ -20,6 +20,7 @@ RUN dnf install -y \
     bat \
     bind-utils \
     binutils-devel \
+    binwalk \
     bison \
     bootc \
     butane \
