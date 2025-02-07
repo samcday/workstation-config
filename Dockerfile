@@ -103,6 +103,7 @@ RUN dnf install -y \
     podman-bootc \
     postgresql \
     python3-dbusmock \
+    python3-pip \
     python3-pygments \
     python3-typogrify \
     rclone \
