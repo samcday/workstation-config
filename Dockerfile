@@ -13,6 +13,7 @@ RUN dnf copr enable -y samcday/phosh-nightly
 RUN dnf copr enable -y samcday/pmbootstrap
 
 RUN dnf install -y \
+    abi-compliance-checker \
     age \
     android-tools \
     apk-tools \
