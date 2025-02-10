@@ -16,6 +16,7 @@ RUN dnf install -y \
     abi-compliance-checker \
     age \
     android-tools \
+    apitrace \
     apk-tools \
     arm-none-eabi-gcc \
     bat \
