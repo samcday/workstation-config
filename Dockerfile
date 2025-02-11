@@ -57,6 +57,7 @@ RUN dnf install -y \
     git-subtree \
     glibc-devel.i686 \
     gnome-bluetooth-libs-devel \
+    gnome-calls \
     gnome-console \
     gnome-tweaks \
     golang \
