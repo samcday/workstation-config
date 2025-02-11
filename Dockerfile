@@ -37,6 +37,7 @@ RUN dnf install -y \
     dejavu-sans-mono-fonts \
     docker \
     docker-buildx \
+    d-spy \
     dtc \
     fastfetch \
     fcgiwrap \
