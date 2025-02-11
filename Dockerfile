@@ -14,6 +14,7 @@ RUN dnf copr enable -y samcday/pmbootstrap
 
 RUN dnf install -y \
     abi-compliance-checker \
+    aerc \
     age \
     android-tools \
     apitrace \
