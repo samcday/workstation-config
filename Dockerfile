@@ -29,6 +29,7 @@ RUN dnf install -y \
     butane \
     cage \
     cargo \
+    ccache \
     clangd \
     cloc \
     cmake \
