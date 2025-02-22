@@ -68,6 +68,7 @@ RUN dnf install -y \
     greetd \
     greetd-fakegreet \
     gsound-devel \
+    gtk4-devel-tools \
     gtkgreet \
     hcloud \
     heimdall \
