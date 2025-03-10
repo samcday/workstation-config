@@ -145,7 +145,7 @@ RUN dnf install -y \
     yq \
     zsh \
     https://github.com/derailed/k9s/releases/download/v0.40.6/k9s_linux_amd64.rpm \
-    https://github.com/getsops/sops/releases/download/v3.9.2/sops-3.9.2-1.x86_64.rpm
+    https://github.com/getsops/sops/releases/download/v3.9.4/sops-3.9.4-1.x86_64.rpm
 
 RUN dnf builddep -y \
     gdm \
