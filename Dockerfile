@@ -123,6 +123,7 @@ RUN dnf install -y \
     seatd \
     shellcheck \
     spice-protocol \
+    sshfs \
     strace \
     sway \
     syncthing \
