@@ -133,6 +133,7 @@ RUN dnf install -y \
     tofu \
     tpm2-tss-engine \
     tpm2-tss-engine-utilities \
+    ukify \
     usbip \
     vim \
     virt-install \
