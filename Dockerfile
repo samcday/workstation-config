@@ -59,6 +59,7 @@ RUN dnf install -y \
     gnome-bluetooth-libs-devel \
     gnome-calls \
     gnome-console \
+    gnome-shell-extension-appindicator \
     gnome-tweaks \
     golang \
     golang-bin \
