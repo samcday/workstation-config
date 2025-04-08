@@ -9,7 +9,8 @@ RUN dnf copr enable -y gmaglione/podman-bootc
 RUN dnf copr enable -y samcday/phrog-nightly
 RUN dnf copr enable -y samcday/phosh-nightly
 
-RUN dnf install -y \
+RUN --mount=type=cache,target=/var/cache/libdnf5 \
+    dnf install -y \
     abi-compliance-checker \
     aerc \
     age \
@@ -148,7 +149,8 @@ RUN dnf install -y \
     https://github.com/derailed/k9s/releases/download/v0.40.6/k9s_linux_amd64.rpm \
     https://github.com/getsops/sops/releases/download/v3.9.4/sops-3.9.4-1.x86_64.rpm
 
-RUN dnf builddep -y \
+RUN --mount=type=cache,target=/var/cache/libdnf5 \
+    dnf builddep -y \
     gdm \
     gnome-software \
     phoc \
