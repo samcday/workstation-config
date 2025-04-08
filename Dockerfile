@@ -93,6 +93,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     lstopo \
     meson \
     mpv \
+    nbd \
     ncurses-devel \
     net-tools \
     nginx \
