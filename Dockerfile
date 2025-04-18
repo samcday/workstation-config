@@ -106,6 +106,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     openssl-devel \
     openssl-devel-engine \
     packit \
+    pahole \
     perl-FindBin \
     phrog \
     pipewire-devel \
