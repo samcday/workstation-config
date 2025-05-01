@@ -114,6 +114,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     podman-bootc \
     postgresql \
     python3-dbusmock \
+    python3-devel \
     python3-pip \
     python3-pygments \
     python3-typogrify \
