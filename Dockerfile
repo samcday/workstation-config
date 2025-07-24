@@ -76,6 +76,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     htop \
     iperf3 \
     java-21-openjdk-devel \
+    kde-connect \
     kernel-6.15.0-0.rc2.24.test.fc42 \
     kiwi \
     kubeadm \
