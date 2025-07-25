@@ -107,6 +107,8 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     packit \
     pahole \
     perl-FindBin \
+    perl-IPC-Cmd \
+    perl-Time-Piece \
     phrog \
     pipewire-devel \
     pmbootstrap \
