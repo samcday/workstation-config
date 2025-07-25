@@ -8,7 +8,6 @@ COPY *.repo /etc/yum.repos.d/
 RUN dnf copr enable -y gmaglione/podman-bootc
 RUN dnf copr enable -y samcday/phrog-nightly
 RUN dnf copr enable -y samcday/phosh-nightly
-RUN dnf copr enable -y samcday/kernel-dummy-hcd
 
 RUN --mount=type=cache,target=/var/cache/libdnf5 \
     dnf install --refresh -y \
@@ -77,7 +76,6 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     iperf3 \
     java-21-openjdk-devel \
     kde-connect \
-    kernel-6.15.0-0.rc2.24.test.fc42 \
     kiwi \
     kubeadm \
     kubectl \
