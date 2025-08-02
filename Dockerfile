@@ -64,6 +64,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     gnome-tweaks \
     golang \
     golang-bin \
+    golang-github-cloudflare-cfssl \
     greetd \
     greetd-fakegreet \
     gsound-devel \
