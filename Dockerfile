@@ -33,6 +33,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     cmake \
     copr-cli \
     codium \
+    coreos-installer \
     debootstrap \
     dejavu-sans-mono-fonts \
     docker \
