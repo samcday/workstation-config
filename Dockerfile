@@ -130,6 +130,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     screen \
     seatd \
     shellcheck \
+    speedtest-cli \
     spice-protocol \
     sshfs \
     strace \
