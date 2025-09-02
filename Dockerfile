@@ -137,6 +137,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     sway \
     syncthing \
     tailscale \
+    tang \
     tcpdump \
     tio \
     tmux \
