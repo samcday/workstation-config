@@ -82,6 +82,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     kubeadm \
     kubectl \
     kubelet \
+    kustomize \
     libavcodec-freeworld \
     jbigkit-devel \
     liblerc-devel \
