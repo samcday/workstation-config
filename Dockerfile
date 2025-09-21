@@ -8,6 +8,7 @@ COPY *.repo /etc/yum.repos.d/
 RUN dnf copr enable -y gmaglione/podman-bootc
 RUN dnf copr enable -y samcday/phrog-nightly
 RUN dnf copr enable -y samcday/phosh-nightly
+RUN dnf copr enable -y rowanfr/fw-ectool
 
 RUN --mount=type=cache,target=/var/cache/libdnf5 \
     dnf install --refresh -y \
@@ -47,6 +48,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     fedora-review \
     flex \
     ftp \
+    fw-ectool \
     fzf \
     gcc \
     gcc-aarch64-linux-gnu \
