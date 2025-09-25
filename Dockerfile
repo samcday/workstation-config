@@ -175,6 +175,8 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     phosh \
     phosh-mobile-settings
 
+RUN mkdir /nix
+
 # Alternatives are broken. Should figure out why.
 # for now: hax.
 RUN ln -sf /usr/bin/ld.bfd /usr/bin/ld
