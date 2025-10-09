@@ -161,7 +161,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     yt-dlp \
     yq \
     zsh \
-    https://github.com/derailed/k9s/releases/download/v0.40.6/k9s_linux_amd64.rpm \
+    https://github.com/derailed/k9s/releases/download/v0.50.15/k9s_linux_amd64.rpm \
     https://github.com/getsops/sops/releases/download/v3.9.4/sops-3.9.4-1.x86_64.rpm \
     https://github.com/LizardByte/Sunshine/releases/download/v2025.924.154138/Sunshine-2025.924.154138-1.fc42.x86_64.rpm
 
