@@ -98,6 +98,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     lshw \
     lstopo \
     meson \
+    minidlna \
     mpv \
     nbd \
     ncurses-devel \
