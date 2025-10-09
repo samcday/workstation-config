@@ -104,6 +104,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     ncurses-devel \
     net-tools \
     nginx \
+    nmap \
     nodejs \
     obs-studio \
     obs-studio-devel \
