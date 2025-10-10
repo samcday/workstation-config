@@ -154,6 +154,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     vim \
     virt-install \
     virt-manager \
+    waypipe \
     wl-clipboard \
     wf-recorder \
     xmlstarlet \
