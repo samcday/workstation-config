@@ -136,6 +136,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     screen \
     seatd \
     shellcheck \
+    socat \
     speedtest-cli \
     spice-protocol \
     sshfs \
