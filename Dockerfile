@@ -146,6 +146,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     tailscale \
     tang \
     tcpdump \
+    tftp \
     tftp-server \
     tio \
     tmux \
