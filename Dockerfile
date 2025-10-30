@@ -12,6 +12,19 @@ RUN dnf copr enable -y rowanfr/fw-ectool
 
 RUN --mount=type=cache,target=/var/cache/libdnf5 \
     dnf install --refresh -y \
+      akmods \
+      kernel-devel \
+      kernel-headers \
+      akmod-nvidia \
+      xorg-x11-drv-nvidia \
+      xorg-x11-drv-nvidia-cuda \
+      xorg-x11-drv-nvidia-power \
+      nvidia-settings \
+      nvidia-persistenced \
+      libva-nvidia-driver
+
+RUN --mount=type=cache,target=/var/cache/libdnf5 \
+    dnf install --refresh -y \
     abi-compliance-checker \
     aerc \
     age \
@@ -177,6 +190,8 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     phoc \
     phosh \
     phosh-mobile-settings
+
+RUN akmods
 
 RUN mkdir /nix
 
