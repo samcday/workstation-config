@@ -153,6 +153,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     speedtest-cli \
     spice-protocol \
     sshfs \
+    steam \
     strace \
     sway \
     syncthing \
