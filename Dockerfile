@@ -1,4 +1,4 @@
-FROM quay.io/fedora/fedora-silverblue:43
+FROM quay.io/fedora/fedora-silverblue:42
 
 RUN dnf -y install \
     https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
@@ -10,35 +10,20 @@ RUN dnf copr enable -y samcday/phrog-nightly
 RUN dnf copr enable -y samcday/phosh-nightly
 RUN dnf copr enable -y rowanfr/fw-ectool
 
-# <NVIDIA-BULLSHIT>
-RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
+RUN --mount=type=cache,target=/var/cache/libdnf5 \
     dnf install --refresh -y \
       akmods \
       kernel-devel \
-      kernel-headers
-
-# we isolate this step and run it without scripts because the %post
-# is broken:
-# `ERROR: Not to be used as root; start as user or 'akmodsbuild' instead.`
-RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
-    dnf install --refresh -y --setopt=tsflags=noscripts \
-      akmod-nvidia
-
-# thanks to pbrezina for this workaround:
-# https://github.com/bootc-dev/bootc/discussions/993
-RUN akmods --force --kernels `rpm -q --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}' kernel-devel`
-
-RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
-    dnf install --refresh -y  \
+      kernel-headers \
+      akmod-nvidia \
       xorg-x11-drv-nvidia \
       xorg-x11-drv-nvidia-cuda \
       xorg-x11-drv-nvidia-power \
-      libva-nvidia-driver \
       nvidia-settings \
-      nvidia-persistenced
-# </NVIDIA-BULLSHIT>
+      nvidia-persistenced \
+      libva-nvidia-driver
 
-RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
+RUN --mount=type=cache,target=/var/cache/libdnf5 \
     dnf install --refresh -y \
     abi-compliance-checker \
     aerc \
@@ -198,15 +183,17 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     zsh \
     https://github.com/derailed/k9s/releases/download/v0.50.15/k9s_linux_amd64.rpm \
     https://github.com/getsops/sops/releases/download/v3.11.0/sops-3.11.0-1.x86_64.rpm \
-    https://github.com/LizardByte/Sunshine/releases/download/v2025.1027.181930/Sunshine-2025.1027.181930-1.fc43.x86_64.rpm
+    https://github.com/LizardByte/Sunshine/releases/download/v2025.924.154138/Sunshine-2025.924.154138-1.fc42.x86_64.rpm
 
-RUN --mount=type=cache,id=dnfcache,target=/var/cache/libdnf5 \
+RUN --mount=type=cache,target=/var/cache/libdnf5 \
     dnf builddep -y \
     gdm \
     gnome-software \
     phoc \
     phosh \
     phosh-mobile-settings
+
+RUN akmods
 
 RUN mkdir /nix
 
