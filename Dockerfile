@@ -32,6 +32,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     apitrace \
     apk-tools \
     arm-none-eabi-gcc \
+    b4 \
     bat \
     bind-utils \
     binutils-devel \
