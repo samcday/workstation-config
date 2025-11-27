@@ -10,7 +10,7 @@ RUN dnf copr enable -y samcday/phrog-nightly
 RUN dnf copr enable -y samcday/phosh-nightly
 RUN dnf copr enable -y rowanfr/fw-ectool
 
-RUN --mount=type=cache,target=/var/cache/libdnf5 \
+RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf install --refresh -y \
       akmods \
       kernel-devel \
@@ -23,7 +23,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
       nvidia-persistenced \
       libva-nvidia-driver
 
-RUN --mount=type=cache,target=/var/cache/libdnf5 \
+RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf install --refresh -y \
     abi-compliance-checker \
     aerc \
@@ -95,6 +95,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     java-21-openjdk-devel \
     kde-connect \
     kiwi \
+    kmscube \
     kubeadm \
     kubectl \
     kubelet \
@@ -185,7 +186,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     https://github.com/getsops/sops/releases/download/v3.11.0/sops-3.11.0-1.x86_64.rpm \
     https://github.com/LizardByte/Sunshine/releases/download/v2025.924.154138/Sunshine-2025.924.154138-1.fc42.x86_64.rpm
 
-RUN --mount=type=cache,target=/var/cache/libdnf5 \
+RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf builddep -y \
     gdm \
     gnome-software \
@@ -193,7 +194,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
     phosh \
     phosh-mobile-settings
 
-RUN akmods
+RUN akmods --force --kernels `rpm -q --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}' kernel-devel`
 
 RUN mkdir /nix
 
