@@ -84,6 +84,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     gcc-c++ \
     gcc-gnat \
     gdb \
+    gdbserver \
     giflib-devel \
     git-credential-libsecret \
     git-lfs \
