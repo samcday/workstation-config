@@ -47,6 +47,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     apitrace \
     apk-tools \
     arm-none-eabi-gcc \
+    asciinema \
     b4 \
     bat \
     bind-utils \
