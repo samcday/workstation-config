@@ -151,6 +151,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     perl-Time-Piece \
     phrog \
     pipewire-devel \
+    pipx \
     pmbootstrap \
     podman-bootc \
     postgresql \
