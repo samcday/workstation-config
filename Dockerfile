@@ -203,7 +203,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     zsh \
     https://github.com/derailed/k9s/releases/download/v0.50.15/k9s_linux_amd64.rpm \
     https://github.com/getsops/sops/releases/download/v3.11.0/sops-3.11.0-1.x86_64.rpm \
-    https://github.com/LizardByte/Sunshine/releases/download/v2025.1027.181930/Sunshine-2025.1027.181930-1.fc43.x86_64.rpm
+    https://github.com/LizardByte/Sunshine/releases/download/v2025.1128.13554/Sunshine-2025.1128.13554-1.fc43.x86_64.rpm
 
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf builddep -y \
