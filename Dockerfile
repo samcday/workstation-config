@@ -69,6 +69,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dejavu-sans-mono-fonts \
     docker \
     docker-buildx \
+    docker-compose \
     d-spy \
     dtc \
     fastfetch \
