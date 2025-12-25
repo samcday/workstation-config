@@ -195,6 +195,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     virt-install \
     virt-manager \
     waypipe \
+    wine \
     wl-clipboard \
     wf-recorder \
     xmlstarlet \
