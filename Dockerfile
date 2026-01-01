@@ -9,6 +9,7 @@ RUN dnf copr enable -y gmaglione/podman-bootc
 RUN dnf copr enable -y samcday/phrog-nightly
 RUN dnf copr enable -y samcday/phosh-nightly
 RUN dnf copr enable -y rowanfr/fw-ectool
+RUN dnf copr enable -y lizardbyte/beta
 
 # <NVIDIA-BULLSHIT>
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
@@ -177,6 +178,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     sshfs \
     steam \
     strace \
+    Sunshine \
     sway \
     syncthing \
     tailscale \
