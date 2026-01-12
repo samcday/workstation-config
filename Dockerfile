@@ -68,6 +68,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     coreos-installer \
     debootstrap \
     dejavu-sans-mono-fonts \
+    ddcutil \
     docker \
     docker-buildx \
     docker-compose \
