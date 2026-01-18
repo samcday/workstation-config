@@ -6,7 +6,6 @@ RUN dnf -y install \
 COPY *.repo /etc/yum.repos.d/
 
 RUN dnf copr enable -y gmaglione/podman-bootc
-RUN dnf copr enable -y samcday/phrog-nightly
 RUN dnf copr enable -y samcday/phosh-nightly
 RUN dnf copr enable -y rowanfr/fw-ectool
 RUN dnf copr enable -y lizardbyte/beta
@@ -153,7 +152,6 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     perl-FindBin \
     perl-IPC-Cmd \
     perl-Time-Piece \
-    phrog \
     pipewire-devel \
     pipx \
     pmbootstrap \
@@ -209,6 +207,9 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     zsh \
     https://github.com/derailed/k9s/releases/download/v0.50.15/k9s_linux_amd64.rpm \
     https://github.com/getsops/sops/releases/download/v3.11.0/sops-3.11.0-1.x86_64.rpm
+
+RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
+    dnf install --enablerepo=updates-testing --refresh --advisory=FEDORA-2026-02a97a390f -y phrog
 
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf builddep -y \
