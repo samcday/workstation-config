@@ -135,6 +135,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     lstopo \
     meson \
     minidlna \
+    mkosi \
     mpv \
     nbd \
     ncurses-devel \
