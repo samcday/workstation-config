@@ -157,6 +157,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     pmbootstrap \
     podman-bootc \
     postgresql \
+    prometheus \
     protobuf-compiler \
     python3-dbusmock \
     python3-devel \
