@@ -46,6 +46,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     android-tools \
     apitrace \
     apk-tools \
+    aria2 \
     arm-none-eabi-gcc \
     asciinema \
     b4 \
