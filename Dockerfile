@@ -80,6 +80,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     fedora-repos-rawhide \
     fedora-review \
     fio \
+    flatpak-builder \
     flex \
     ftp \
     fw-ectool \
