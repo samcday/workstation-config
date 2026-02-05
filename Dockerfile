@@ -129,6 +129,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     libphosh-devel \
     libsamplerate-devel \
     libunistring-devel \
+    libxdo-devel \
     libXScrnSaver-devel \
     libXpresent-devel \
     libxkbcommon-x11-devel \
