@@ -124,6 +124,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     kustomize \
     libavcodec-freeworld \
     jbigkit-devel \
+    just \
     liblerc-devel \
     libnotify-devel \
     libphosh-devel \
