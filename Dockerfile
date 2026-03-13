@@ -69,6 +69,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     debootstrap \
     dejavu-sans-mono-fonts \
     ddcutil \
+    dkms \
     docker \
     docker-buildx \
     docker-compose \
