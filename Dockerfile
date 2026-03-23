@@ -118,6 +118,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     iperf3 \
     java-21-openjdk-devel \
     kde-connect \
+    kind \
     kiwi \
     kmscube \
     kubeadm \
