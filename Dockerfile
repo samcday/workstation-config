@@ -166,6 +166,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     postgresql \
     prometheus \
     protobuf-compiler \
+    protobuf-devel \
     python3-dbusmock \
     python3-devel \
     python3-pip \
