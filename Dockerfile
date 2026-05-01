@@ -208,6 +208,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     virt-manager \
     waypipe \
     wine \
+    wireshark \
     wl-clipboard \
     wf-recorder \
     xmlstarlet \
