@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 quay.io/fedora/fedora-silverblue:43
+FROM --platform=linux/amd64 quay.io/fedora/fedora-silverblue:44
 
 RUN dnf -y install \
     https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
@@ -116,7 +116,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     helm \
     htop \
     iperf3 \
-    java-21-openjdk-devel \
+    java-25-openjdk-devel \
     kde-connect \
     kind \
     kiwi \
@@ -159,6 +159,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     perl-FindBin \
     perl-IPC-Cmd \
     perl-Time-Piece \
+    phrog \
     pipewire-devel \
     pipx \
     pmbootstrap \
@@ -216,9 +217,6 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     zsh \
     https://github.com/derailed/k9s/releases/download/v0.50.15/k9s_linux_amd64.rpm \
     https://github.com/getsops/sops/releases/download/v3.11.0/sops-3.11.0-1.x86_64.rpm
-
-RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
-    dnf install --enablerepo=updates-testing --refresh --advisory=FEDORA-2026-02a97a390f -y phrog
 
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf builddep -y \
