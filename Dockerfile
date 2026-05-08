@@ -209,6 +209,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     vim \
     virt-install \
     virt-manager \
+    virtme-ng \
     waypipe \
     wine \
     wireshark \
