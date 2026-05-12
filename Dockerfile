@@ -155,6 +155,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     openssl \
     openssl-devel \
     openssl-devel-engine \
+    oras \
     packit \
     pahole \
     perl-FindBin \
