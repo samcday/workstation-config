@@ -76,6 +76,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     docker-compose \
     d-spy \
     dtc \
+    dt-schema \
     fastfetch \
     fcgiwrap \
     fedora-packager \
