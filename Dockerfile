@@ -216,6 +216,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     wf-recorder \
     xmlstarlet \
     xorg-x11-server-Xwayland-devel \
+    yamllint \
     yt-dlp \
     yq \
     zsh \
