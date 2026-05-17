@@ -176,6 +176,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     python3-pip \
     python3-pygments \
     python3-typogrify \
+    qemu-user-static-arm \
     rclone \
     restic \
     ripgrep \
