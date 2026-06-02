@@ -194,6 +194,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     strace \
     Sunshine \
     sway \
+    swig \
     syncthing \
     tailscale \
     tang \
