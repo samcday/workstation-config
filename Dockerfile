@@ -117,6 +117,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     heimdall \
     helm \
     htop \
+    iasl \
     iperf3 \
     java-25-openjdk-devel \
     kde-connect \
