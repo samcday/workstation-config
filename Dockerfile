@@ -9,6 +9,7 @@ RUN dnf copr enable -y gmaglione/podman-bootc
 RUN dnf copr enable -y samcday/phosh-nightly
 RUN dnf copr enable -y rowanfr/fw-ectool
 RUN dnf copr enable -y lizardbyte/beta
+RUN dnf copr enable -y samcday/aarch64-linux-musl
 
 # <NVIDIA-BULLSHIT>
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
@@ -40,6 +41,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
 
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf install --refresh -y \
+    aarch64-linux-musl-toolchain \
     abi-compliance-checker \
     aerc \
     age \
