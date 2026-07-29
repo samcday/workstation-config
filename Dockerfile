@@ -90,6 +90,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     ftp \
     fw-ectool \
     fzf \
+    gamescope \
     gcc \
     gcc-aarch64-linux-gnu \
     gcc-c++ \
