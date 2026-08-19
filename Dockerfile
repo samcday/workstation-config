@@ -247,14 +247,11 @@ RUN mkdir /nix
 RUN ln -sf /usr/bin/ld.bfd /usr/bin/ld
 RUN ln -sf /usr/lib/golang/bin/go /usr/bin/go
 
-# Disable SELinux for now until the underlying relabelling issues are resolved
-# (#2)
-RUN echo 'SELINUX=disabled' > /etc/selinux/config
-
 # Update initrd to include TPM2 disk unlock and include vfio-pci early (to denylist PCI devices,
 # like NVIDIA GPU on my desktop)
 COPY dracut.conf /usr/lib/dracut/dracut.conf.d/10-sam.conf
-RUN export KERNEL_VERSION="$(rpm -qa kernel --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}')" && \
+RUN export DRACUT_NO_XATTR=1 && \
+    export KERNEL_VERSION="$(rpm -qa kernel --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}')" && \
     stock_arguments=$(lsinitrd "/lib/modules/${KERNEL_VERSION}/initramfs.img"  | grep '^Arguments: ' | sed 's/^Arguments: //') && \
     mkdir -p /tmp/dracut /var/roothome && \
     bash <(/usr/bin/echo "dracut -f /lib/modules/${KERNEL_VERSION}/initramfs.img $stock_arguments") && \
