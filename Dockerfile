@@ -3,6 +3,7 @@ FROM --platform=linux/amd64 quay.io/fedora/fedora-silverblue:44
 RUN dnf -y install \
     https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 
+COPY RPM-GPG-KEY-chatgpt-3BFA0E4AE8B8CC16A2D9BA684A3B4A566C4660E4.asc /etc/pki/rpm-gpg/
 COPY *.repo /etc/yum.repos.d/
 
 RUN dnf copr enable -y gmaglione/podman-bootc
@@ -62,6 +63,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     cage \
     cargo \
     ccache \
+    chatgpt \
     clangd \
     cloc \
     cmake \
