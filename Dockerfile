@@ -65,6 +65,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     ccache \
     chatgpt \
     clangd \
+    claude-desktop-unofficial \
     cloc \
     cmake \
     copr-cli \
