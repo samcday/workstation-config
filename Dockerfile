@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 quay.io/fedora/fedora-silverblue:44
+FROM --platform=linux/amd64 quay.io/fedora/fedora-silverblue:45
 
 RUN dnf -y install \
     https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
@@ -44,13 +44,14 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf install --refresh -y \
     aarch64-linux-musl-toolchain \
     abi-compliance-checker \
+    acpica-tools \
     aerc \
     age \
     android-tools \
     apitrace \
     apk-tools \
     aria2 \
-    arm-none-eabi-gcc \
+    arm-none-eabi-gcc-cs \
     asciinema \
     b4 \
     bat \
@@ -61,10 +62,11 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     bootc \
     butane \
     cage \
+    calls \
     cargo \
     ccache \
     chatgpt \
-    clangd \
+    clang-tools-extra \
     claude-desktop-unofficial \
     cloc \
     cmake \
@@ -76,8 +78,8 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     devscripts \
     ddcutil \
     dkms \
-    docker \
     docker-buildx \
+    docker-cli \
     docker-compose \
     d-spy \
     dtc \
@@ -99,7 +101,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     gcc-c++ \
     gcc-gnat \
     gdb \
-    gdbserver \
+    gdb-gdbserver \
     gh \
     giflib-devel \
     git-credential-libsecret \
@@ -107,13 +109,11 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     git-subtree \
     glibc-devel.i686 \
     gnome-bluetooth-libs-devel \
-    gnome-calls \
     gnome-console \
     gnome-shell-extension-appindicator \
     gnome-tweaks \
     golang \
     golang-bin \
-    golang-github-cloudflare-cfssl \
     greetd \
     greetd-fakegreet \
     gsound-devel \
@@ -123,12 +123,13 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     heimdall \
     helm \
     htop \
-    iasl \
+    hwloc-gui \
     iperf3 \
     java-25-openjdk-devel \
     kde-connect \
     kind \
-    kiwi \
+    kiwi-cli \
+    kiwi-systemdeps \
     kmscube \
     kubeadm \
     kubectl \
@@ -147,7 +148,6 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     libXpresent-devel \
     libxkbcommon-x11-devel \
     lshw \
-    lstopo \
     meson \
     minidlna \
     mkosi \
@@ -162,10 +162,8 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     obs-studio-devel \
     openssl \
     openssl-devel \
-    openssl-devel-engine \
-    oras \
     packit \
-    pahole \
+    dwarves \
     perl-FindBin \
     perl-IPC-Cmd \
     perl-Time-Piece \
@@ -187,16 +185,16 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     rclone \
     restic \
     ripgrep \
-    rust-packaging \
+    rust-srpm-macros \
     rust2rpm \
     rustup \
     screen \
     seatd \
-    shellcheck \
+    ShellCheck \
     socat \
     speedtest-cli \
     spice-protocol \
-    sshfs \
+    fuse-sshfs \
     steam \
     strace \
     Sunshine \
@@ -210,12 +208,12 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     tftp-server \
     tio \
     tmux \
-    tofu \
+    opentofu \
     tpm2-tss-engine \
     tpm2-tss-engine-utilities \
-    ukify \
+    systemd-ukify \
     usbip \
-    vim \
+    vim-enhanced \
     virt-install \
     virt-manager \
     virtme-ng \
@@ -232,6 +230,16 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     zsh \
     https://github.com/derailed/k9s/releases/download/v0.50.15/k9s_linux_amd64.rpm \
     https://github.com/getsops/sops/releases/download/v3.11.0/sops-3.11.0-1.x86_64.rpm
+
+RUN curl -fsSL https://github.com/oras-project/oras/releases/download/v1.3.4/oras_1.3.4_linux_amd64.tar.gz | tar -xz -C /usr/bin oras
+
+RUN set -eux; \
+    for b in cfssl cfssljson multirootca cfssl-bundle cfssl-certinfo cfssl-newkey cfssl-scan; do \
+      curl -fsSL -o "/usr/bin/$b" "https://github.com/cloudflare/cfssl/releases/download/v1.6.5/${b}_1.6.5_linux_amd64"; \
+      chmod 0755 "/usr/bin/$b"; \
+    done; \
+    curl -fsSL -o /usr/bin/cfssl-mkbundle https://github.com/cloudflare/cfssl/releases/download/v1.6.5/mkbundle_1.6.5_linux_amd64; \
+    chmod 0755 /usr/bin/cfssl-mkbundle
 
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf builddep -y \
