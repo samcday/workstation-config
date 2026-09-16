@@ -258,6 +258,10 @@ RUN mkdir /nix
 RUN ln -sf /usr/bin/ld.bfd /usr/bin/ld
 RUN ln -sf /usr/lib/golang/bin/go /usr/bin/go
 
+# ChatGPT hardcodes X11 ozone, where its stray override-redirect avatarOverlay window renders the app click-through. Force Wayland.
+RUN grep -q '^Exec=chatgpt %U' /usr/share/applications/chatgpt.desktop && \
+    sed -i 's|^Exec=chatgpt %U|Exec=chatgpt --ozone-platform=wayland %U|' /usr/share/applications/chatgpt.desktop
+
 # Update initrd to include TPM2 disk unlock and include vfio-pci early (to denylist PCI devices,
 # like NVIDIA GPU on my desktop)
 COPY dracut.conf /usr/lib/dracut/dracut.conf.d/10-sam.conf
