@@ -262,6 +262,12 @@ RUN ln -sf /usr/lib/golang/bin/go /usr/bin/go
 RUN grep -q '^Exec=chatgpt %U' /usr/share/applications/chatgpt.desktop && \
     sed -i 's|^Exec=chatgpt %U|Exec=chatgpt --ozone-platform=wayland %U|' /usr/share/applications/chatgpt.desktop
 
+# Claude Desktop defaults to XWayland on GNOME. On mutter 51, hiding the window to tray and reopening it
+# leaves the remapped Xwayland surface without pointer focus (clicks fall through to the window behind).
+# CLAUDE_USE_WAYLAND=1 is the launcher's supported switch for native Wayland.
+RUN grep -q '^Exec=/usr/bin/claude-desktop-unofficial %u' /usr/share/applications/claude-desktop-unofficial.desktop && \
+    sed -i 's|^Exec=/usr/bin/claude-desktop-unofficial %u|Exec=env CLAUDE_USE_WAYLAND=1 /usr/bin/claude-desktop-unofficial %u|' /usr/share/applications/claude-desktop-unofficial.desktop
+
 # Update initrd to include TPM2 disk unlock and include vfio-pci early (to denylist PCI devices,
 # like NVIDIA GPU on my desktop)
 COPY dracut.conf /usr/lib/dracut/dracut.conf.d/10-sam.conf
