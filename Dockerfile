@@ -13,6 +13,13 @@ RUN dnf copr enable -y lizardbyte/beta
 RUN dnf copr enable -y samcday/aarch64-linux-musl
 
 # <NVIDIA-BULLSHIT>
+# Pinned to the 580xx legacy branch. The 615.71.09 driver that came in with the
+# F44->F45 rebase deadlocks the whole RM API lock on DPMS wake: the modeset
+# kthread wedges, gnome-shell's KMS thread blocks in an ioctl and the screen
+# never comes back. Happened twice on 2026-09-18. See issue #3.
+# 610.57.04 (the last version known good here) is no longer carried by rpmfusion
+# for either F44 or F45, so 580.178.04 is the closest maintained F45 build.
+# Revisit when rpmfusion ships a 615.x point release or 620.
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf install --refresh -y \
       akmods \
@@ -24,7 +31,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
 # `ERROR: Not to be used as root; start as user or 'akmodsbuild' instead.`
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf install --refresh -y --setopt=tsflags=noscripts \
-      akmod-nvidia
+      akmod-nvidia-580xx
 
 # thanks to pbrezina for this workaround:
 # https://github.com/bootc-dev/bootc/discussions/993
@@ -32,11 +39,11 @@ RUN akmods --force --kernels `rpm -q --queryformat '%{VERSION}-%{RELEASE}.%{ARCH
 
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf install --refresh -y  \
-      xorg-x11-drv-nvidia \
-      xorg-x11-drv-nvidia-cuda \
-      xorg-x11-drv-nvidia-power \
+      xorg-x11-drv-nvidia-580xx \
+      xorg-x11-drv-nvidia-580xx-cuda \
+      xorg-x11-drv-nvidia-580xx-power \
       libva-nvidia-driver \
-      nvidia-settings \
+      nvidia-settings-580xx \
       nvidia-persistenced
 # </NVIDIA-BULLSHIT>
 
