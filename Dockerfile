@@ -26,6 +26,33 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf install --refresh -y --setopt=tsflags=noscripts \
       akmod-nvidia
 
+# The 615.71.09 driver deadlocks the display-idle (DIFR) prefetch kthread on
+# DPMS wake and the screen never comes back (issue #3, upstream #1289). The fix
+# is unmerged PR #1286. rpmfusion's kmodsrc ships the nvidia-modeset OS-agnostic
+# layer as a precompiled blob (nv-modeset-kernel.o_binary) so the patch can't
+# go through the akmod. Instead: fetch the upstream tree at the matching tag,
+# apply the patch, rebuild just that blob and splice it into the kmodsrc tarball
+# before akmods runs. Version comes from the installed kmodsrc so it can't
+# mismatch. When the patch stops applying (merged, or code drifted) this fails
+# loudly, which is the point. Drop this block once the fix is upstream.
+COPY nvidia/1286-difr-prefetch-deadlock.patch /tmp/nvidia-difr.patch
+RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
+    set -eu && \
+    V=$(rpm -q --queryformat '%{VERSION}' xorg-x11-drv-nvidia-kmodsrc) && \
+    dnf install -y gcc-c++ patch && \
+    cd /tmp && \
+    curl -sfL https://github.com/NVIDIA/open-gpu-kernel-modules/archive/refs/tags/$V.tar.gz | tar xz && \
+    cd open-gpu-kernel-modules-$V && \
+    patch -p1 < /tmp/nvidia-difr.patch && \
+    make -C src/nvidia-modeset -j$(nproc) && \
+    T=/usr/share/nvidia-kmod-$V/nvidia-kmod-$V-x86_64.tar.xz && \
+    mkdir /tmp/kmodsrc && tar xJf $T -C /tmp/kmodsrc && \
+    install -m 0644 src/nvidia-modeset/_out/Linux_x86_64/nv-modeset-kernel.o \
+      /tmp/kmodsrc/kernel-open/nvidia-modeset/nv-modeset-kernel.o_binary && \
+    tar cJf $T -C /tmp/kmodsrc . && \
+    cd /tmp && rm -rf /tmp/kmodsrc /tmp/open-gpu-kernel-modules-$V /tmp/nvidia-difr.patch && \
+    dnf remove -y gcc-c++
+
 # thanks to pbrezina for this workaround:
 # https://github.com/bootc-dev/bootc/discussions/993
 RUN akmods --force --kernels `rpm -q --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}' kernel-devel`
