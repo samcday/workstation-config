@@ -268,6 +268,19 @@ RUN grep -q '^Exec=chatgpt %U' /usr/share/applications/chatgpt.desktop && \
 RUN grep -q '^Exec=/usr/bin/claude-desktop-unofficial %u' /usr/share/applications/claude-desktop-unofficial.desktop && \
     sed -i 's|^Exec=/usr/bin/claude-desktop-unofficial %u|Exec=env CLAUDE_USE_WAYLAND=1 /usr/bin/claude-desktop-unofficial %u|' /usr/share/applications/claude-desktop-unofficial.desktop
 
+# mutter 51.rc gives X11 (Xwayland) windows an empty input region whenever their initial window config
+# is postponed: the ShapeInput rect gets intersected with a 0x0 client rect. Steam, Electron/CEF apps
+# etc. render fine but every click lands on the window behind (gnome-shell#9389, fixed by mutter!5296,
+# commit 9ea6030832, in 51.0). Fedora has mutter-51.0-1.fc45 built in koji but no bodhi update yet, so
+# pull the koji build directly. Once the base image ships mutter >= 51.0 the guard fails loudly, which is
+# the cue to delete this block.
+RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
+    set -eu && \
+    rpm -q mutter | grep -q '^mutter-51~rc' && \
+    dnf install -y \
+      https://kojipkgs.fedoraproject.org/packages/mutter/51.0/1.fc45/x86_64/mutter-51.0-1.fc45.x86_64.rpm \
+      https://kojipkgs.fedoraproject.org/packages/mutter/51.0/1.fc45/noarch/mutter-common-51.0-1.fc45.noarch.rpm
+
 # Update initrd to include TPM2 disk unlock and include vfio-pci early (to denylist PCI devices,
 # like NVIDIA GPU on my desktop)
 COPY dracut.conf /usr/lib/dracut/dracut.conf.d/10-sam.conf
