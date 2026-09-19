@@ -138,6 +138,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     gnome-bluetooth-libs-devel \
     gnome-console \
     gnome-shell-extension-appindicator \
+    gnome-shell-extension-caffeine \
     gnome-tweaks \
     golang \
     golang-bin \
@@ -307,6 +308,39 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf install -y \
       https://kojipkgs.fedoraproject.org/packages/mutter/51.0/1.fc45/x86_64/mutter-51.0-1.fc45.x86_64.rpm \
       https://kojipkgs.fedoraproject.org/packages/mutter/51.0/1.fc45/noarch/mutter-common-51.0-1.fc45.noarch.rpm
+
+# GNOME 51: the Fedora 45 rpms of AppIndicator (64) and Caffeine (60) still cap shell-version at 50, so
+# the shell refuses to load them ("OUT OF DATE"). Upstream supports 51 (AppIndicator v65, Caffeine master)
+# but no rebuilt rpm has landed. Overlay the upstream trees on top of the rpm install, following the
+# Fedora specs' install steps. Each block first checks that the rpm's metadata.json still lacks "51";
+# once Fedora ships a 51-capable rpm the guard fails loudly, which is the cue to delete that block.
+RUN set -eu && \
+    ext=/usr/share/gnome-shell/extensions/appindicatorsupport@rgcjonas.gmail.com && \
+    jq -e '.["shell-version"] | index("51") | not' $ext/metadata.json >/dev/null && \
+    mkdir -p /tmp/appindicator && cd /tmp/appindicator && \
+    curl -fsSL https://github.com/ubuntu/gnome-shell-extension-appindicator/archive/refs/tags/v65.tar.gz | tar xz --strip-components=1 && \
+    meson setup build --prefix=/usr -Dlocal_install=disabled && \
+    ninja -C build install && \
+    jq -e '.["shell-version"] | index("51")' $ext/metadata.json >/dev/null && \
+    cd / && rm -rf /tmp/appindicator
+
+RUN set -eu && \
+    ext=/usr/share/gnome-shell/extensions/caffeine@patapon.info && \
+    jq -e '.["shell-version"] | index("51") | not' $ext/metadata.json >/dev/null && \
+    mkdir -p /tmp/caffeine && cd /tmp/caffeine && \
+    curl -fsSL https://github.com/eonpatapon/gnome-shell-extension-caffeine/archive/be18b3558a250d672a7108f01a8dcf55c0935bc6.tar.gz | tar xz --strip-components=1 && \
+    cd caffeine@patapon.info && \
+    rm -rf $ext && install -d -m 0755 $ext && \
+    cp -r --preserve=timestamps *.js metadata.json icons preferences $ext && \
+    install -D -p -m 0644 schemas/org.gnome.shell.extensions.caffeine.gschema.xml /usr/share/glib-2.0/schemas/org.gnome.shell.extensions.caffeine.gschema.xml && \
+    for po in locale/*.po; do \
+      install -d -m 0755 /usr/share/${po%.po}/LC_MESSAGES && \
+      msgfmt -o /usr/share/${po%.po}/LC_MESSAGES/gnome-shell-extension-caffeine.mo $po; \
+    done && \
+    jq -e '.["shell-version"] | index("51")' $ext/metadata.json >/dev/null && \
+    cd / && rm -rf /tmp/caffeine
+
+RUN glib-compile-schemas /usr/share/glib-2.0/schemas
 
 # Update initrd to include TPM2 disk unlock and include vfio-pci early (to denylist PCI devices,
 # like NVIDIA GPU on my desktop)
