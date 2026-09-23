@@ -178,6 +178,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     libavcodec-freeworld \
     jbigkit-devel \
     just \
+    lei \
     liblerc-devel \
     libnotify-devel \
     libphosh-devel \
@@ -216,6 +217,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     prometheus \
     protobuf-compiler \
     protobuf-devel \
+    public-inbox-server \
     python3-dbusmock \
     python3-devel \
     python3-pip \
