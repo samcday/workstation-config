@@ -12,11 +12,23 @@ RUN dnf copr enable -y rowanfr/fw-ectool
 RUN dnf copr enable -y lizardbyte/beta
 RUN dnf copr enable -y samcday/aarch64-linux-musl
 
+# mutter 51.rc gives X11 (Xwayland) windows an empty input region whenever their initial window config
+# is postponed: the ShapeInput rect gets intersected with a 0x0 client rect. Steam, Electron/CEF apps
+# etc. render fine but every click lands on the window behind (gnome-shell#9389, fixed by mutter!5296,
+# commit 9ea6030832, in 51.0). mutter 51.0 ships in the GNOME 51.0 bodhi update, still in testing, so
+# pull the whole update from updates-testing before anything else installs against the rc stack. Once
+# the base image ships mutter >= 51.0 the guard fails loudly, which is the cue to delete this block.
+RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
+    set -eu && \
+    rpm -q mutter | grep -q '^mutter-51~rc' && \
+    dnf upgrade --refresh -y --enablerepo=updates-testing --advisory=FEDORA-2026-48a7996f9c && \
+    rpm -q mutter | grep -q '^mutter-51\.0'
+
 # <NVIDIA-BULLSHIT>
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf install --refresh -y \
       akmods \
-      kernel-devel \
+      kernel-devel-$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' kernel) \
       kernel-headers
 
 # we isolate this step and run it without scripts because the %post
@@ -296,21 +308,8 @@ RUN grep -q '^Exec=chatgpt %U' /usr/share/applications/chatgpt.desktop && \
 RUN grep -q '^Exec=/usr/bin/claude-desktop-unofficial %u' /usr/share/applications/claude-desktop-unofficial.desktop && \
     sed -i 's|^Exec=/usr/bin/claude-desktop-unofficial %u|Exec=env CLAUDE_USE_WAYLAND=1 /usr/bin/claude-desktop-unofficial %u|' /usr/share/applications/claude-desktop-unofficial.desktop
 
-# mutter 51.rc gives X11 (Xwayland) windows an empty input region whenever their initial window config
-# is postponed: the ShapeInput rect gets intersected with a 0x0 client rect. Steam, Electron/CEF apps
-# etc. render fine but every click lands on the window behind (gnome-shell#9389, fixed by mutter!5296,
-# commit 9ea6030832, in 51.0). Fedora has mutter-51.0-1.fc45 built in koji but no bodhi update yet, so
-# pull the koji build directly. Once the base image ships mutter >= 51.0 the guard fails loudly, which is
-# the cue to delete this block.
-RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
-    set -eu && \
-    rpm -q mutter | grep -q '^mutter-51~rc' && \
-    dnf install -y \
-      https://kojipkgs.fedoraproject.org/packages/mutter/51.0/1.fc45/x86_64/mutter-51.0-1.fc45.x86_64.rpm \
-      https://kojipkgs.fedoraproject.org/packages/mutter/51.0/1.fc45/noarch/mutter-common-51.0-1.fc45.noarch.rpm
-
 # GNOME 51: the Fedora 45 rpms of AppIndicator (64) and Caffeine (60) still cap shell-version at 50, so
-# the shell refuses to load them ("OUT OF DATE"). Upstream supports 51 (AppIndicator v65, Caffeine master)
+# the shell refuses to load them ("OUT OF DATE"). Upstream supports 51 (AppIndicator v66, Caffeine master)
 # but no rebuilt rpm has landed. Overlay the upstream trees on top of the rpm install, following the
 # Fedora specs' install steps. Each block first checks that the rpm's metadata.json still lacks "51";
 # once Fedora ships a 51-capable rpm the guard fails loudly, which is the cue to delete that block.
@@ -318,7 +317,7 @@ RUN set -eu && \
     ext=/usr/share/gnome-shell/extensions/appindicatorsupport@rgcjonas.gmail.com && \
     jq -e '.["shell-version"] | index("51") | not' $ext/metadata.json >/dev/null && \
     mkdir -p /tmp/appindicator && cd /tmp/appindicator && \
-    curl -fsSL https://github.com/ubuntu/gnome-shell-extension-appindicator/archive/refs/tags/v65.tar.gz | tar xz --strip-components=1 && \
+    curl -fsSL https://github.com/ubuntu/gnome-shell-extension-appindicator/archive/refs/tags/v66.tar.gz | tar xz --strip-components=1 && \
     meson setup build --prefix=/usr -Dlocal_install=disabled && \
     ninja -C build install && \
     jq -e '.["shell-version"] | index("51")' $ext/metadata.json >/dev/null && \
