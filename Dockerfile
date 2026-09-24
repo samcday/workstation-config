@@ -264,6 +264,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     wireshark \
     wl-clipboard \
     wf-recorder \
+    xapian-core \
     xmlstarlet \
     xorg-x11-server-Xwayland-devel \
     yamllint \
