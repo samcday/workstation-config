@@ -38,16 +38,19 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf install --refresh -y --setopt=tsflags=noscripts \
       akmod-nvidia
 
-# The 615.71.09 driver deadlocks the display-idle (DIFR) prefetch kthread on
-# DPMS wake and the screen never comes back (issue #3, upstream #1289). The fix
-# is unmerged PR #1286. rpmfusion's kmodsrc ships the nvidia-modeset OS-agnostic
+# Carry two upstream candidates for separate NVIDIA display failures (issue #3):
+# PR #1286 bounds DIFR prefetch waits and resets faulted channels (#1289).
+# PR #1359 restores DisplayPort detach cleanup when a monitor powers off;
+# 615.71.09 otherwise leaves stale state which can break subsequent modesets.
+# Neither patch alone establishes that all display-wake hangs are fixed.
+# rpmfusion's kmodsrc ships the nvidia-modeset OS-agnostic
 # layer as a precompiled blob (nv-modeset-kernel.o_binary) so the patch can't
 # go through the akmod. Instead: fetch the upstream tree at the matching tag,
-# apply the patch, rebuild just that blob and splice it into the kmodsrc tarball
+# apply the patches, rebuild just that blob and splice it into the kmodsrc tarball
 # before akmods runs. Version comes from the installed kmodsrc so it can't
-# mismatch. When the patch stops applying (merged, or code drifted) this fails
-# loudly, which is the point. Drop this block once the fix is upstream.
-COPY nvidia/1286-difr-prefetch-deadlock.patch /tmp/nvidia-difr.patch
+# mismatch. When a patch stops applying (merged, or code drifted) this fails
+# loudly. Drop the corresponding patch once its fix is upstream.
+COPY nvidia/*.patch /tmp/nvidia-patches/
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     set -eu && \
     V=$(rpm -q --queryformat '%{VERSION}' xorg-x11-drv-nvidia-kmodsrc) && \
@@ -55,14 +58,14 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     cd /tmp && \
     curl -sfL https://github.com/NVIDIA/open-gpu-kernel-modules/archive/refs/tags/$V.tar.gz | tar xz && \
     cd open-gpu-kernel-modules-$V && \
-    patch -p1 < /tmp/nvidia-difr.patch && \
+    for P in /tmp/nvidia-patches/*.patch; do patch --batch --forward --fuzz=0 -p1 < "$P" || exit 1; done && \
     make -C src/nvidia-modeset -j$(nproc) && \
     T=/usr/share/nvidia-kmod-$V/nvidia-kmod-$V-x86_64.tar.xz && \
     mkdir /tmp/kmodsrc && tar xJf $T -C /tmp/kmodsrc && \
     install -m 0644 src/nvidia-modeset/_out/Linux_x86_64/nv-modeset-kernel.o \
       /tmp/kmodsrc/kernel-open/nvidia-modeset/nv-modeset-kernel.o_binary && \
     tar cJf $T -C /tmp/kmodsrc . && \
-    cd /tmp && rm -rf /tmp/kmodsrc /tmp/open-gpu-kernel-modules-$V /tmp/nvidia-difr.patch && \
+    cd /tmp && rm -rf /tmp/kmodsrc /tmp/open-gpu-kernel-modules-$V /tmp/nvidia-patches && \
     dnf remove -y gcc-c++
 
 # thanks to pbrezina for this workaround:

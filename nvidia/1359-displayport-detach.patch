@@ -1,0 +1,37 @@
+Allow DisplayPort detach bookkeeping while the monitor is powered off.
+
+Upstream: https://github.com/NVIDIA/open-gpu-kernel-modules/pull/1359
+Head commit: a2e8b26b20dfb6f2fa3cb8985e3f1126cba38aae (checked 2026-09-27, PR still open)
+Related: https://github.com/NVIDIA/open-gpu-kernel-modules/issues/1392
+Local: workstation-config issue #3
+
+615.71.09 added a guard which skips detach cleanup when HPD is low. Permit
+detach-only requests, while continuing to reject attachments to absent sinks.
+This is a candidate for the monitor power-cycle failure, distinct from DIFR;
+upstream hardware reports do not establish a fix for every GSP RPC hang.
+
+diff --git a/src/common/displayport/src/dp_connectorimpl.cpp b/src/common/displayport/src/dp_connectorimpl.cpp
+--- a/src/common/displayport/src/dp_connectorimpl.cpp
++++ b/src/common/displayport/src/dp_connectorimpl.cpp
+@@ -3861,11 +3861,18 @@ void ConnectorImpl::dpPreModeset(const DpPreModesetParams &params)
+         return;
+     }
+ 
+-    // Skip gating modeset on HPD for DDS panels
++    // Skip gating modeset on HPD for DDS panels.
++    // Allow HPD-low detach bookkeeping; notifyLongPulse() permits detach.
+     if(!previousPlugged && !bClientForcedConnected && !main->isInternalPanelDynamicMuxCapable())
+     {
+-        DP_ASSERT(0 && "DPCONN> dpPreModeset called when Plugged State is false!");
+-        return;
++        for (NvU32 i = 0; i < NV_MAX_HEADS; i++)
++        {
++            if ((params.headMask & NVBIT(i)) && params.head[i].pTarget != NULL)
++            {
++                DP_ASSERT(0 && "DPCONN> dpPreModeset attach called when Plugged State is false!");
++                return;
++            }
++        }
+     }
+ 
+     this->bFECEnable |= this->needToEnableFEC(params);
