@@ -1,0 +1,185 @@
+ChatGPT Computer remote patch update, 2026-09-29 (Australia/Sydney)
+Repository: samcday/workstation-config
+Fix commit: 96ecf5d82989017c705e749a7a6695e987466634
+Baseline: 6df588c2b783db2aa9d586379bc0ad5930ffbb35
+Host: sam-laptop, Fedora Silverblue 45, x86_64; Python 3.15.0rc2, Node v22.23.1.
+Scope: source inspection and archive patch validation; the new release has not
+been launched for end-to-end pairing and the full workstation image was not
+rebuilt here. The previous release's pairing/simultaneous-control result was
+reported by Sam on 2026-09-28. Rootful local build-cache inspection required a
+sudo password, so the exact package was obtained from the configured RPM repo.
+
+Failure and package provenance
+------------------------------
+Sam's podman build stopped at the Computer remote patch step with input ASAR
+SHA256 f6cfcd56db2928e56ec927a5cc20c8714c0bb05d68ce0711c352f8d69862bb47.
+Its cached openai-chatgpt primary metadata selected 26.924.51851-1.x86_64.
+Downloaded from:
+https://persistent.oaistatic.com/codex-app-prod/linux/rpm/x86_64/chatgpt-26.924.51851-1.x86_64.rpm
+RPM SHA256: 8e19092b3f0e24609fc438a99c66863023f056181f2f5339cdac07b71f4f4bed
+This matched the repository metadata. rpmkeys --checksig reported:
+  digests signatures OK
+The RPM's extracted app.asar exactly matches the failing input checksum above.
+
+Source inspection
+-----------------
+Old asset: webview/assets/remote-connections-settings-9071fdb8f430.js
+New asset: webview/assets/remote-connections-settings-553ac787b7d0.js
+New original asset SHA256:
+  4e7e966c342add10f98ccf4f22f1915f76ef4e0c5ad6a634c55805a84a264440
+New _s() reads g=T(`782640499`), assigns K=!g and passes K as
+showControlOtherDevices. Controller tab visibility also uses st=K&&(be||!1).
+The separate be=Xr() availability predicate remains Slingshot enabled, remote
+state available, and accessRequired not true. authRequired and clientAuthorized
+remain separate. A second agent independently confirmed this data flow.
+Change exactly once:
+  be=Xr(),K=!g,xe=S==null -> be=Xr(),K=!0,xe=S==null
+This changes target asset byte 134247 from g to 0; its archive offset is
+346536340. The feature hook call, availability and authentication remain intact.
+New patched asset SHA256:
+  c48d3ee955677c9a26a1fb9295b11b34f63513e376e8ebc9bd0c2430fcb0d042
+New patched archive SHA256:
+  0e8e836bb5d2fafb2a0ea833b361d172a5750f5b3a7552fbe9b385aa2ecfc121
+The expected output was first generated independently of the updated repository
+script. The script then reproduced it with its new PATCHES entry.
+
+Validation
+----------
+Ran the driver below on both real input archives. It checks whole-output
+checksums, one-byte target payload change, integrity hashes, unchanged entry
+metadata/offsets, all unrelated bytes, file mode, and node --check. Repeat and
+tampered inputs fail without writes; an intentionally incorrect output checksum
+also fails without replacing the input or leaving temporary files. git diff
+--check passed. Independent code review found no issues.
+
+Enabled Computer remote control in /tmp/computer-remote-validation-oq0d0zup/app.asar (ChatGPT 26.917.62051, SHA256 01fb03cc1340e0afa9b22b6047dd90628df84a79581d631977299e38f49f72a9)
+PASS 26.917.62051: exact output, only one payload byte plus target integrity changed, JS syntax and file mode verified
+PASS 26.917.62051: repeat invocation rejected without writes
+PASS 26.917.62051: tampered input rejected without writes
+PASS 26.917.62051: output verification failure preserved original and cleaned temporary copy
+Enabled Computer remote control in /tmp/computer-remote-validation-oq0d0zup/app.asar (ChatGPT 26.924.51851, SHA256 0e8e836bb5d2fafb2a0ea833b361d172a5750f5b3a7552fbe9b385aa2ecfc121)
+PASS 26.924.51851: exact output, only one payload byte plus target integrity changed, JS syntax and file mode verified
+PASS 26.924.51851: repeat invocation rejected without writes
+PASS 26.924.51851: tampered input rejected without writes
+PASS 26.924.51851: output verification failure preserved original and cleaned temporary copy
+
+Reproduction (from the fix commit's repository root)
+---------------------------------------------------
+Requires the unmodified 26.917.62051 archive at /usr/lib/chatgpt/resources/app.asar
+(or adjust inputs[0] in the driver), plus Python >=3.11, Node, rpm2cpio and cpio.
+
+mkdir -p /tmp/chatgpt-26.924/extracted
+curl -fL -o /tmp/chatgpt-26.924/chatgpt.rpm https://persistent.oaistatic.com/codex-app-prod/linux/rpm/x86_64/chatgpt-26.924.51851-1.x86_64.rpm
+sha256sum /tmp/chatgpt-26.924/chatgpt.rpm
+rpmkeys --checksig /tmp/chatgpt-26.924/chatgpt.rpm
+rpm2cpio /tmp/chatgpt-26.924/chatgpt.rpm | (cd /tmp/chatgpt-26.924/extracted && cpio -id --quiet './usr/lib/chatgpt/resources/app.asar')
+
+Save and run the following validation driver. It patches temporary copies only:
+
+```python
+from pathlib import Path
+import copy
+import hashlib
+import importlib.util
+import json
+import stat
+import struct
+import subprocess
+import sys
+import tempfile
+
+script = Path('chatgpt/enable-computer-remote.py').resolve()
+spec = importlib.util.spec_from_file_location('remote_patch', script)
+module = importlib.util.module_from_spec(spec)
+sys.dont_write_bytecode = True
+spec.loader.exec_module(module)
+inputs = [
+    Path('/usr/lib/chatgpt/resources/app.asar'),
+    Path('/tmp/chatgpt-26.924/extracted/usr/lib/chatgpt/resources/app.asar'),
+]
+
+def clone(source, target):
+    subprocess.run(['cp', '--reflink=auto', '--preserve=mode', str(source), str(target)], check=True)
+
+def read(archive, asset):
+    with archive.open('rb') as f:
+        prefix = f.read(16)
+        sizes = struct.unpack('<4I', prefix)
+        header = json.loads(f.read(sizes[3]))
+        entry = header
+        for component in asset.split('/'):
+            entry = entry['files'][component]
+        offset = 8 + sizes[1] + int(entry['offset'])
+        f.seek(offset)
+        return prefix, header, entry, offset, f.read(entry['size'])
+
+with tempfile.TemporaryDirectory(prefix='computer-remote-validation-', dir='/tmp') as temporary:
+    folder = Path(temporary)
+    archive = folder / 'app.asar'
+    for original in inputs:
+        source_hash = module.sha256(original)
+        selected = module.PATCHES[source_hash]
+        clone(original, archive)
+        result = subprocess.run([sys.executable, str(script), str(archive)], capture_output=True, text=True)
+        assert result.returncode == 0, result.stderr
+        print(result.stdout.strip())
+        assert module.sha256(archive) == selected['sha256']
+        assert archive.stat().st_size == original.stat().st_size
+        assert stat.S_IMODE(archive.stat().st_mode) == stat.S_IMODE(original.stat().st_mode)
+        old_prefix, old_header, old_entry, old_offset, old_asset = read(original, selected['asset'])
+        new_prefix, new_header, new_entry, new_offset, new_asset = read(archive, selected['asset'])
+        assert old_prefix == new_prefix and old_offset == new_offset
+        assert len(old_asset) == len(new_asset)
+        changes = [(i, a, b) for i, (a, b) in enumerate(zip(old_asset, new_asset)) if a != b]
+        assert len(changes) == 1 and changes[0][2] == ord('0')
+        assert new_asset == old_asset.replace(selected['original'], selected['patched'])
+        integrity = new_entry['integrity']
+        assert integrity['hash'] == hashlib.sha256(new_asset).hexdigest()
+        block_size = integrity['blockSize']
+        assert integrity['blocks'] == [hashlib.sha256(new_asset[i:i+block_size]).hexdigest() for i in range(0, len(new_asset), block_size)]
+        new_entry['integrity'] = copy.deepcopy(old_entry['integrity'])
+        assert new_header == old_header
+        with original.open('rb') as before, archive.open('rb') as after:
+            position = 0
+            header_end = 16 + struct.unpack('<4I', old_prefix)[3]
+            while left := before.read(1024*1024):
+                right = after.read(len(left))
+                if left != right:
+                    for index, (a, b) in enumerate(zip(left, right)):
+                        absolute = position + index
+                        assert a == b or 16 <= absolute < header_end or old_offset <= absolute < old_offset + len(old_asset)
+                position += len(left)
+            assert not after.read(1)
+        javascript = folder / 'connections.mjs'
+        javascript.write_bytes(new_asset)
+        subprocess.run(['node', '--check', str(javascript)], check=True)
+        print(f"PASS {selected['version']}: exact output, only one payload byte plus target integrity changed, JS syntax and file mode verified")
+        for case in ['repeat invocation', 'tampered input']:
+            if case == 'tampered input':
+                clone(original, archive)
+                with archive.open('r+b') as f:
+                    f.seek(-1, 2)
+                    value = f.read(1)
+                    f.seek(-1, 2)
+                    f.write(bytes([value[0] ^ 1]))
+            before = module.sha256(archive)
+            result = subprocess.run([sys.executable, str(script), str(archive)], capture_output=True, text=True)
+            assert result.returncode == 1 and 'unrecognized app.asar SHA256' in result.stderr
+            assert module.sha256(archive) == before
+            print(f"PASS {selected['version']}: {case} rejected without writes")
+        clone(original, archive)
+        expected_output = selected['sha256']
+        selected['sha256'] = '0' * 64
+        try:
+            try:
+                module.patch(archive)
+            except ValueError as error:
+                assert 'differs from reviewed output' in str(error)
+            else:
+                raise AssertionError('accepted unexpected output')
+        finally:
+            selected['sha256'] = expected_output
+        assert module.sha256(archive) == source_hash
+        assert not list(folder.glob('.computer-remote-*'))
+        print(f"PASS {selected['version']}: output verification failure preserved original and cleaned temporary copy")
+```
