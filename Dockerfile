@@ -12,18 +12,6 @@ RUN dnf copr enable -y rowanfr/fw-ectool
 RUN dnf copr enable -y lizardbyte/beta
 RUN dnf copr enable -y samcday/aarch64-linux-musl
 
-# mutter 51.rc gives X11 (Xwayland) windows an empty input region whenever their initial window config
-# is postponed: the ShapeInput rect gets intersected with a 0x0 client rect. Steam, Electron/CEF apps
-# etc. render fine but every click lands on the window behind (gnome-shell#9389, fixed by mutter!5296,
-# commit 9ea6030832, in 51.0). mutter 51.0 ships in the GNOME 51.0 bodhi update, still in testing, so
-# pull the whole update from updates-testing before anything else installs against the rc stack. Once
-# the base image ships mutter >= 51.0 the guard fails loudly, which is the cue to delete this block.
-RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
-    set -eu && \
-    rpm -q mutter | grep -q '^mutter-51~rc' && \
-    dnf upgrade --refresh -y --enablerepo=updates-testing --advisory=FEDORA-2026-48a7996f9c && \
-    rpm -q mutter | grep -q '^mutter-51\.0'
-
 # <NVIDIA-BULLSHIT>
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf install --refresh -y \
