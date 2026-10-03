@@ -308,12 +308,6 @@ RUN ln -sf /usr/lib/golang/bin/go /usr/bin/go
 RUN grep -q '^Exec=chatgpt %U' /usr/share/applications/chatgpt.desktop && \
     sed -i 's|^Exec=chatgpt %U|Exec=chatgpt --ozone-platform=wayland %U|' /usr/share/applications/chatgpt.desktop
 
-# Expose the tested Computer pairing UI. Fail on app updates until revalidated;
-# see chatgpt/README.md for scope, checksums and removal instructions.
-COPY chatgpt/enable-computer-remote.py /tmp/enable-computer-remote.py
-RUN python3 /tmp/enable-computer-remote.py /usr/lib/chatgpt/resources/app.asar && \
-    rm /tmp/enable-computer-remote.py
-
 # Claude Desktop defaults to XWayland on GNOME. On mutter 51, hiding the window to tray and reopening it
 # leaves the remapped Xwayland surface without pointer focus (clicks fall through to the window behind).
 # CLAUDE_USE_WAYLAND=1 is the launcher's supported switch for native Wayland.
