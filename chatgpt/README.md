@@ -25,9 +25,9 @@ offsets. It accepts only the exact original archive and checks the complete
 patched archive against the checksum of the successfully tested client before
 replacing the file.
 
-The Dockerfile applies this after package installation, alongside the existing
-Wayland launcher workaround. The resulting image uses the normal `chatgpt`
-launcher and app profile; no separate client copy is needed.
+The Dockerfile no longer applies this patch, so the image uses the packaged
+app archive. The script and validation notes remain here for reference. The
+separate Wayland launcher workaround is still applied.
 
 ## Updating or removing the workaround
 
