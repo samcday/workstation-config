@@ -335,6 +335,8 @@ RUN set -eu && \
 
 RUN glib-compile-schemas /usr/share/glib-2.0/schemas
 
+COPY sysctl.conf /usr/lib/sysctl.d/60-workstation.conf
+
 # Update initrd to include TPM2 disk unlock and include vfio-pci early (to denylist PCI devices,
 # like NVIDIA GPU on my desktop)
 COPY dracut.conf /usr/lib/dracut/dracut.conf.d/10-sam.conf
