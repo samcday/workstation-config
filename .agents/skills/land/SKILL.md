@@ -30,6 +30,10 @@ metadata:
    If edits or a later rebase changed image inputs after the build, warn the user that
    the new image may be out of date.
 7. Run `git push origin HEAD:main`.
+8. Rebase this checkout, the main Delta thread, and all of its subthreads onto the
+   newly landed `origin/main` using step 2. Coordinate other checkouts through
+   their own agents, preserving uncommitted work. Wait for each thread to confirm
+   that the landed commit is an ancestor of `HEAD`; report any blockers.
 
 If sudo blocks the build or image inspection, stop and remind the user to install
 [workstation-image.sudoers](../../../workstation-image.sudoers):
