@@ -1,0 +1,3 @@
+# Commands used by the land skill; OS upgrades and reboots stay manual.
+sam ALL=(root) NOPASSWD: /usr/bin/podman build -t workstation-image\:latest .
+sam ALL=(root) NOPASSWD: /usr/bin/podman image inspect --format {{.Digest}} workstation-image\:latest
