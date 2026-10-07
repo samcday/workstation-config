@@ -84,3 +84,49 @@ container-image-reference-digest exactly equal to:
 Also verify the live fs.inotify.max_user_instances value and installed
 drop-in. Stop on missing evidence/digest mismatch, and reassess image
 freshness if source inputs change. No Git push has been performed yet.
+
+Post-reboot verification and final landing candidate, 2026-10-08
+
+Sam confirmed manually running rpm-ostree upgrade and rebooting.
+Verification ran at 2026-10-08T06:01:53+11:00 on sam-laptop, the build machine.
+Boot time: 2026-10-08 05:36:52.
+Running kernel: 7.2.9-300.fc45.x86_64.
+
+rpm-ostree status --json had exactly one deployment with booted:true:
+- Version: 45.20261006.n.0.
+- OSTree checksum:
+  bf2b5bb7be28b5b937ac9ea2710c93aea1238d683639b4b3e6ae6c892d35c9b7
+- container-image-reference:
+  ostree-unverified-image:containers-storage:localhost/workstation-image:latest
+- container-image-reference-digest:
+  sha256:69fe10aae27e2a08633d463985140b94b4f954db3f0575be1e3cfc455d118add
+The reference and digest were compared against the recorded build values
+and matched exactly; hostname also matched the build machine.
+
+cmp sysctl.conf /usr/lib/sysctl.d/60-workstation.conf succeeded.
+The installed file contains only the intended active assignment:
+  fs.inotify.max_user_instances = 1024
+Runtime sysctl values on this laptop:
+  fs.inotify.max_user_instances = 1024
+  fs.inotify.max_user_watches = 131280
+  fs.inotify.max_queued_events = 16384
+The watch-count value is this laptop's value, not the value observed in the
+original diagnosis on the desktop; this patch does not assign that sysctl.
+systemd-sysctl.service reported ActiveState=active, SubState=exited,
+Result=success and ExecMainStatus=0.
+
+Before publishing, origin/main had advanced to
+0104005019d5346c016835e400339ce8bee908cd (build-image wrapper).
+Rebased the inotify commit without conflicts, producing:
+  b6b73f00de83a006e0ca05a07520891e8168641f
+The actual image was built from 093a5fe0393e84621d0806b04c1461fc37edc9f3.
+Compared that revision to the final candidate: only
+.agents/skills/land/SKILL.md, build-image and workstation-image.sudoers
+changed. None of these are copied into the image. Confirmed the Dockerfile,
+all five COPY source patterns, and ignore files are unchanged. Therefore
+this rebase did not change any local image-content inputs and does not
+invalidate the successful build/boot verification. The wrapper's alternate
+storage mount option was not used for this already-completed build.
+
+The checkout is clean and git diff --check passes. No additional upgrade,
+reboot, image rebuild, or host storage change was performed by the agent.
