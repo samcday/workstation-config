@@ -1,0 +1,70 @@
+Inotify-instance limit diagnosis and persistent image configuration
+
+Environment and scope
+- Fedora 45 x86_64 workstation, kernel 7.2.8-300.fc45.x86_64.
+- Initial observations: 2026-10-04 22:43-22:44 UTC.
+- Delta main process PID 1051260, about 20h51m uptime. Delta version/commit
+  was not captured; no claim is made about a particular application build.
+- workstation-config base: 49b70584c35c5a3c430d8f8de5a80badf044464f.
+- This commit changes only the inotify instance limit in the image; it has
+  not yet been deployed or tested by booting a newly built image.
+
+Diagnosis
+Read ~/.local/share/delta/delta.log and delta.log.old, filtering for
+"Too many open files", errno 23/24, EMFILE/ENFILE and inotify queue overflows.
+The current log, starting 2026-10-04 01:53:09 UTC, contained 120 matching
+error/warning lines through 22:44 UTC:
+- 14 deltadb::worktree errors: Too many open files (os error 24).
+- 8 failed worktree mounts: Watch(Too many open files (os error 24)).
+- 3 shell-warmer mount-construction failures with the same Watch error.
+- 95 external-edits warnings reporting an unavailable mount and scanning
+  without it. Thus the symptom was not confined to initial worktree setup.
+The latest matching error was at 2026-10-04 22:42:45.624 UTC. The rotated
+log contained one further failed-mount warning at 01:52:55.738 UTC.
+
+Read /proc/1051260/limits and classified /proc/1051260/fd symlink targets:
+- Delta: 301 open FDs; soft/hard RLIMIT_NOFILE both 1048576.
+- Delta: 48 inotify FDs, with 82868 watch entries in their fdinfo files.
+- fs.inotify.max_user_instances = 128.
+- fs.inotify.max_user_watches = 551990.
+- fs.inotify.max_queued_events = 16384.
+- fs.file-nr reported 13772 allocated handles and maximum 9223372036854775807.
+Enumerating accessible same-UID /proc/*/fd and fdinfo yielded 127 inotify
+FDs and 120967 watch entries. These are descriptor counts, not deduplicated
+kernel instances: inheritance/duplication can overcount, and four same-UID
+processes were inaccessible. One fresh inotify_init1 probe succeeded and
+was immediately closed. The snapshot supports intermittent pressure, not
+permanent exhaustion or proof of a watcher leak.
+
+The installed inotify_init(2) manual explicitly documents EMFILE for both
+the per-user inotify-instance cap and the per-process open-FD cap. The
+watcher-specific errors, low ordinary FD usage and near-cap inotify count
+strongly implicate max_user_instances. Increasing RLIMIT_NOFILE would not
+address that cap.
+
+The logs also contained 27 inotify Q_OVERFLOW messages in the current log
+and three in the rotated log. Queue overflow is a separate problem; this
+change does not claim to fix it.
+
+User-applied runtime mitigation
+Sam reported running:
+  sudo sysctl -w fs.inotify.max_user_instances=1024
+A subsequent read verified 1024, while max_user_watches remained 551990
+and max_queued_events remained 16384. No controlled worktree-creation
+reproducer or before/after success comparison was performed.
+
+Patch validation
+- sysctl --dry-run --load=sysctl.conf: parsed exactly
+  fs.inotify.max_user_instances = 1024 without writing host settings.
+- Extracted the Dockerfile COPY destination, staged sysctl.conf there in
+  a temporary root, and ran:
+  systemd-analyze --no-pager --root=<temporary-root> cat-config sysctl.d
+  The new /usr/lib/sysctl.d/60-workstation.conf was discovered with the
+  intended assignment. Asserted this is the file's only active setting.
+- Inspected the host's existing sysctl.d configuration; it contained no
+  competing inotify-instance assignment.
+- git diff --cached --check passed.
+- Full image build and reboot validation were not run locally.
+
+Private paths and worktree/account identifiers have been omitted from
+this public note; counts and timestamps preserve the relevant evidence.
