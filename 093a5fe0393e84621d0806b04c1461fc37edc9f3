@@ -1,0 +1,38 @@
+Land attempt on sam-laptop, 2026-10-07
+
+Source
+- Commit: 093a5fe0393e84621d0806b04c1461fc37edc9f3.
+- Tree: c10b978f18795af97126f3790e7dc9af8f2787b8.
+- Rebased against origin/main at be75cea2c3c592254239d91714833705f5a8151e.
+- Only intended difference: sysctl.conf with
+  fs.inotify.max_user_instances = 1024, installed by Dockerfile as
+  /usr/lib/sysctl.d/60-workstation.conf.
+- Working tree was clean before and after the build; diff whitespace check passed.
+- Machine: sam-laptop; running kernel 7.2.8-300.fc45.x86_64.
+
+Build command, run from this thread's repository root:
+  sudo -n podman build -t workstation-image:latest .
+
+The terminal invocation was bounded to 3600000 ms (one hour). It timed out
+without completing the image. The final captured Dockerfile instruction
+was STEP 27/31, the existing Caffeine extension overlay. The previous step
+completed as intermediate image 93e24c034ffc. No fatal disk-full error was
+observed in the final output, so disk pressure is not asserted to be the
+cause of the timeout.
+
+Before the build, df -h . /var/lib/containers reported:
+  /dev/mapper/vg-silverblue  354G total, 292G used, 46G available, 87% used
+  /dev/mapper/vg-home       1.2T total, 929G used, 157G available, 86% used
+At 2026-10-07T23:13:51+11:00 after the timeout, it reported:
+  /dev/mapper/vg-silverblue  354G total, 335G used, 2.6G available, 100% used
+  /dev/mapper/vg-home       1.2T total, 929G used, 156G available, 86% used
+The first filesystem is mounted at /var and holds rootful container storage.
+A process-name/command check found no remaining podman build, buildah,
+conmon, or Caffeine download process after the terminal was closed.
+
+Stopped before retrying due to low remaining space on /var. No container
+storage was pruned or deleted. No completed image digest was obtained,
+no boot verification was possible, and no rpm-ostree upgrade, reboot, or
+Git push was performed. The next attempt needs adequate free space before
+re-running the build; it must still obtain a nonempty image digest and
+verify that exact digest on the same machine after the user's manual reboot.
