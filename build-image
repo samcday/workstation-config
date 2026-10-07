@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+
+CDPATH='' cd -- "$(dirname -- "$0")"
+
+# Fedora's rootful metacopy default disables native overlay diffs, making layer
+# commits walk the whole filesystem. Override it for builds, not container runs.
+# https://github.com/podman-container-tools/container-libs/issues/1077
+exec sudo -n /usr/bin/podman --storage-opt overlay.mountopt=nodev build -t workstation-image:latest .

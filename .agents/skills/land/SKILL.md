@@ -14,9 +14,9 @@ metadata:
    Resolve clear-cut conflicts automatically; ask the user if the intent is ambiguous.
 3. If the changes being landed do not affect image contents, proceed directly to
    step 7.
-4. From the repository root, build the [Dockerfile](../../../Dockerfile) with
-   `sudo -n podman build -t workstation-image:latest .`. After success, obtain its
-   digest with `sudo -n podman image inspect --format '{{.Digest}}' workstation-image:latest`.
+4. From the repository root, run [`./build-image`](../../../build-image).
+   After success, obtain its digest with
+   `sudo -n podman image inspect --format '{{.Digest}}' workstation-image:latest`.
    Record the machine, commit, and nonempty `sha256:` digest for verification.
 5. Confirm `rpm-ostree status` tracks
    `ostree-unverified-image:containers-storage:localhost/workstation-image:latest`;
