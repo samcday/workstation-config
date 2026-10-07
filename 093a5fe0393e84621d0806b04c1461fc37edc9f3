@@ -36,3 +36,51 @@ no boot verification was possible, and no rpm-ostree upgrade, reboot, or
 Git push was performed. The next attempt needs adequate free space before
 re-running the build; it must still obtain a nonempty image digest and
 verify that exact digest on the same machine after the user's manual reboot.
+
+Successful image-build retry and pending boot verification, 2026-10-08
+
+Machine: sam-laptop, running kernel 7.2.8-300.fc45.x86_64.
+Source commit: 093a5fe0393e84621d0806b04c1461fc37edc9f3.
+Source tree: c10b978f18795af97126f3790e7dc9af8f2787b8.
+Origin/main remained be75cea2c3c592254239d91714833705f5a8151e after a fresh
+fetch/rebase immediately before this build. Checkout was clean throughout.
+
+Sam reported running sudo podman system prune before this retry. No cache,
+storage, debug-logging, or permission settings were changed by this thread.
+The build reused steps 2-26 and completed steps 27-31 successfully.
+
+Command, from this thread's repository root:
+  sudo -n podman build -t workstation-image:latest .
+The command was run under bash -o pipefail and piped to tee for log capture,
+without the earlier one-hour terminal timeout.
+Invocation began: 2026-10-08T04:19:44+11:00.
+Build and post-build checks completed: 2026-10-08T04:30:42+11:00.
+The command exited 0; no full-rebuild speed comparison is implied because
+most layers were cached. Nonfatal existing schema/dracut warnings appeared.
+
+Final image ID:
+  488d1d2e1cc39639e0af3f5369f5d9a20062d92476c4f1307827c5b89dfbed6e
+Built image digest, read using:
+  sudo -n podman image inspect --format '{{.Digest}}' workstation-image:latest
+  sha256:69fe10aae27e2a08633d463985140b94b4f954db3f0575be1e3cfc455d118add
+
+The sysctl COPY step ran successfully as STEP 29/31, installing
+sysctl.conf to /usr/lib/sysctl.d/60-workstation.conf.
+
+rpm-ostree status reported State: idle and the booted deployment tracking:
+  ostree-unverified-image:containers-storage:localhost/workstation-image:latest
+Its CURRENT (pre-upgrade) digest was:
+  sha256:451db162f78828519f2a7549605d657634bf01dea533490ba6bde581f7919028
+This is not the newly built image. No upgrade or reboot was executed here.
+
+/var free space: 104G before the retry, 103G after; 70% used after the build.
+
+REBOOT CHECKPOINT:
+Ask Sam to run sudo rpm-ostree upgrade and reboot sam-laptop. After Sam
+confirms completion, on that same machine run rpm-ostree status --json and
+verify that the deployment with booted:true has
+container-image-reference-digest exactly equal to:
+  sha256:69fe10aae27e2a08633d463985140b94b4f954db3f0575be1e3cfc455d118add
+Also verify the live fs.inotify.max_user_instances value and installed
+drop-in. Stop on missing evidence/digest mismatch, and reassess image
+freshness if source inputs change. No Git push has been performed yet.
