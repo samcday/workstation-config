@@ -26,11 +26,10 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf install --refresh -y --setopt=tsflags=noscripts \
       akmod-nvidia
 
-# Carry two upstream candidates for separate NVIDIA display failures (issue #3):
+# Carry an upstream candidate for NVIDIA display failures (issue #3):
 # PR #1286 bounds DIFR prefetch waits and resets faulted channels (#1289).
-# PR #1359 restores DisplayPort detach cleanup when a monitor powers off;
-# 615.71.09 otherwise leaves stale state which can break subsequent modesets.
-# Neither patch alone establishes that all display-wake hangs are fixed.
+# 615.78.08 includes HPD-low DisplayPort detach handling, superseding PR #1359.
+# The DIFR patch alone does not establish that all display-wake hangs are fixed.
 # rpmfusion's kmodsrc ships the nvidia-modeset OS-agnostic
 # layer as a precompiled blob (nv-modeset-kernel.o_binary) so the patch can't
 # go through the akmod. Instead: fetch the upstream tree at the matching tag,
