@@ -1,0 +1,13 @@
+[Unit]
+Description=Discord Rich Presence for MPRIS media players
+Documentation=https://github.com/lazykern/mprisence
+PartOf=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/mprisence
+Restart=on-failure
+RestartSec=10
+Environment=RUST_LOG=info
+
+[Install]
+WantedBy=graphical-session.target

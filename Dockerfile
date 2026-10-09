@@ -194,6 +194,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     obs-studio-devel \
     openssl \
     openssl-devel \
+    openssl3-libs \
     packit \
     dwarves \
     perl-FindBin \
@@ -266,6 +267,22 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     https://github.com/getsops/sops/releases/download/v3.11.0/sops-3.11.0-1.x86_64.rpm
 
 RUN curl -fsSL https://github.com/oras-project/oras/releases/download/v1.3.4/oras_1.3.4_linux_amd64.tar.gz | tar -xz -C /usr/bin oras
+
+# Discord Rich Presence for MPRIS players. The upstream binary needs openssl3-libs,
+# not Fedora 45's default OpenSSL 4.
+RUN set -eu; \
+    version=1.9.1; \
+    workdir=$(mktemp -d); \
+    curl -fsSL --retry 3 -o "$workdir/mprisence.tar.gz" \
+      "https://github.com/lazykern/mprisence/releases/download/v${version}/mprisence-v${version}-x86_64-unknown-linux-gnu.tar.gz"; \
+    echo "5c42efd84275d0114a9d49a070d6dd0f44242d38daa25c64ee3de54de072c000  $workdir/mprisence.tar.gz" | sha256sum -c -; \
+    tar -xzf "$workdir/mprisence.tar.gz" -C "$workdir" mprisence; \
+    install -m 0755 "$workdir/mprisence" /usr/bin/mprisence; \
+    /usr/bin/mprisence --version; \
+    rm -rf "$workdir"
+
+COPY mprisence.service /usr/lib/systemd/user/mprisence.service
+RUN systemctl --global enable mprisence.service
 
 RUN set -eux; \
     for b in cfssl cfssljson multirootca cfssl-bundle cfssl-certinfo cfssl-newkey cfssl-scan; do \
