@@ -1,0 +1,32 @@
+# Dev tooling image. This is the tooling that used to be layered directly on the
+# Silverblue host image, moved into a toolbox container so the host image can
+# shrink toward stock Silverblue. Used via toolbox(1) or distrobox. Built in CI
+# alongside the host image (.github/workflows/image.yml); see README.md here.
+
+FROM registry.fedoraproject.org/fedora-toolbox:45
+
+LABEL com.github.containers.toolbox="true" \
+      name="workstation-toolbox" \
+      version="45" \
+      usage="This image is meant to be used with the toolbox(1) command" \
+      summary="Fedora 45 toolbox image with workstation dev tooling" \
+      maintainer="Sam Day <me@samcday.com>"
+
+# One file per package group under base/packages.d/; add a new .list file to
+# add a group.
+COPY base/packages.d/ /tmp/packages.d/
+
+RUN --mount=type=cache,id=toolbox-dnfcache,rw,destination=/var/cache/libdnf5 \
+    set -eu; \
+    packages="$(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' /tmp/packages.d/*.list)"; \
+    if [ -z "$packages" ]; then \
+        echo "ERROR: no packages found in /tmp/packages.d/*.list" >&2; \
+        exit 1; \
+    fi; \
+    dnf install -y dnf5-plugins $packages; \
+    rm -rf /tmp/packages.d
+
+# Tools shipped only as GitHub releases (oras, cfssl, k9s, sops).
+RUN --mount=type=cache,id=toolbox-dnfcache,rw,destination=/var/cache/libdnf5 \
+    --mount=type=bind,source=base/install-binaries.sh,target=/tmp/install-binaries.sh \
+    sh /tmp/install-binaries.sh

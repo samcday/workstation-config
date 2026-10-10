@@ -12,8 +12,14 @@ metadata:
 1. Commit the intended changes.
 2. Run `git fetch origin main`, then `GIT_EDITOR=true git rebase origin/main`.
    Resolve clear-cut conflicts automatically; ask the user if the intent is ambiguous.
-3. If the changes being landed do not affect image contents, proceed directly to
-   step 7.
+3. Decide whether the **host image** is affected. Only these paths feed the host
+   image: the root `Dockerfile`, `*.repo`, `*.asc`, `dracut.conf`, `sysctl.conf`,
+   `nvidia/`, `build-image`. Changes confined to `toolbox/`, `sysexts/`,
+   `.github/`, `.agents/`, `*.md`, `chatgpt/`, or `workstation-image.sudoers`
+   do not. Check with `git diff --name-only origin/main...HEAD`. If the host
+   image is not affected, proceed directly to step 7: toolbox and sysext images
+   are built and published by CI on push, and are picked up on each machine with
+   an image pull, no reboot (see [toolbox/README.md](../../../toolbox/README.md)).
 4. From the repository root, run [`./build-image`](../../../build-image).
    After success, obtain its digest with
    `sudo -n podman image inspect --format '{{.Digest}}' workstation-image:latest`.
