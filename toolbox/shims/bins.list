@@ -1,0 +1,41 @@
+# Binary names exposed on the host as shims into the `dev` toolbox container
+# (image ghcr.io/samcday/workstation-config/toolbox:main); see install.sh in
+# this directory. One name per line; '#' starts a comment.
+#
+# Known `toolbox run` caveats (verified against toolbox src/cmd/run.go and
+# src/pkg/utils/utils.go):
+# - cwd, exit status and stdin/stdout/stderr (incl. a TTY) are preserved, so
+#   the shims are drop-in replacements for normal use. One upstream wart:
+#   toolbox 0.3 reports success when the tool itself exits 127.
+# - Rust: the image ships Fedora's rust/cargo plus rustup. If you have run
+#   rustup on the host, ~/.cargo/bin (shared via $HOME) likely precedes
+#   ~/.local/bin in PATH and its binaries win over these shims.
+# - toolbox forwards only an allowlist of host env vars: COLORTERM, DISPLAY,
+#   HOME, HIST*, LANG, SHELL, SSH_AUTH_SOCK, TERM, WAYLAND_DISPLAY,
+#   XAUTHORITY, XDG_*. `FOO=1 rg ...` on the host does NOT make FOO visible
+#   to rg, and EDITOR is not forwarded either.
+# - if the host cwd is outside $HOME (e.g. /tmp, /mnt), toolbox falls back to
+#   $HOME inside the container with a notice on stderr: the shims are only
+#   reliable under $HOME.
+# - tools see argv[0] as their container path, so multi-call binaries need
+#   one shim per name; keep one entry per name here.
+
+bat
+cargo
+fzf
+gcc
+gh
+go
+just
+jq
+make
+meson
+ninja
+node
+npm
+python3
+rg
+rustc
+shellcheck
+yamllint
+yq

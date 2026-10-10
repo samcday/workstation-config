@@ -1,0 +1,60 @@
+# Fedora packaging toolbox image, built FROM the workstation-toolbox base
+# image. Provides fedpkg, mock, rpmlint, fedora-review, plus the Koji, COPR
+# and Packit clients for Fedora packaging work.
+# Create with: toolbox create fedpkg --image ghcr.io/samcday/workstation-config/toolbox-fedpkg:main
+
+ARG BASE=ghcr.io/samcday/workstation-config/toolbox:main
+FROM $BASE
+
+LABEL com.github.containers.toolbox="true" \
+      name="workstation-toolbox-fedpkg" \
+      version="45" \
+      usage="This image is meant to be used with the toolbox(1) command" \
+      summary="Fedora 45 toolbox image with Fedora packaging tooling" \
+      maintainer="Sam Day <me@samcday.com>"
+
+# Packaging tooling, grouped per packages.list.
+COPY packages.list /tmp/packages.list
+
+RUN --mount=type=cache,id=toolbox-dnfcache,rw,destination=/var/cache/libdnf5 \
+    set -eu; \
+    packages="$(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' /tmp/packages.list)"; \
+    if [ -z "$packages" ]; then \
+        echo "ERROR: no packages found in /tmp/packages.list" >&2; \
+        exit 1; \
+    fi; \
+    dnf install -y $packages; \
+    rm -f /tmp/packages.list
+
+# mock isolation: the default "auto" picks systemd-nspawn, which needs
+# CAP_SYS_ADMIN that a rootless toolbox container does not have; mock >= 2.2
+# then falls back to plain chroot at runtime. Set "simple" explicitly so the
+# behaviour is intended, not a one-time accident. mock-core-configs on F45
+# ships /etc/mock/site-defaults.cfg as a plain file and reads no
+# site-defaults.d/ drop-in directory (checked in mock 6.9), so append to the
+# file instead.
+RUN printf '%s\n' \
+    "# toolbox-fedpkg image: systemd-nspawn needs CAP_SYS_ADMIN, which" \
+    "# rootless toolbox containers do not have. Use plain chroot." \
+    "config_opts['isolation'] = 'simple'" \
+    >> /etc/mock/site-defaults.cfg
+
+# toolbox writes /etc/krb5.conf.d/kcm_default_ccache (KCM as the default
+# ccache) at container-create time, but host sssd-kcm is not reachable from
+# inside the container (containers/toolbox#1734), so kinit/kfinit fail. krb5
+# reads krb5.conf.d/ files in sorted order, first definition of a key wins,
+# so this extension-less drop-in is named to sort BEFORE kcm_default_ccache
+# and switches back to a plain file ccache.
+COPY krb5-ccache.conf /etc/krb5.conf.d/00-toolbox-file-ccache
+
+# toolbox creates the user at "toolbox create" time, so the image cannot add
+# it to the mock group. Until the user joins the group, interactive shells
+# print a one-line hint on login.
+RUN printf '%s\n' \
+    '# Fedora packaging toolbox: mock needs the user in the mock group.' \
+    'case $- in *i*) ;; *) return 0 2>/dev/null || exit 0 ;; esac' \
+    'if ! id -nG "$USER" | grep -qw mock; then' \
+    '    echo "mock: run: sudo usermod -aG mock \$USER, then re-enter this toolbox."' \
+    'fi' \
+    > /etc/profile.d/mock-group-hint.sh \
+    && chmod 0644 /etc/profile.d/mock-group-hint.sh

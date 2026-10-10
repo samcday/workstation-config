@@ -1,0 +1,14 @@
+# Toolbox image for developing the Phosh stack: phosh, phoc, phrog, libphosh,
+# phosh-mobile-settings and gmobile. FROM the base workstation toolbox image,
+# adding the Phosh runtime and build dependencies. Use with:
+#   toolbox create phosh --image ghcr.io/samcday/workstation-config/toolbox-phosh:main
+
+ARG BASE=ghcr.io/samcday/workstation-config/toolbox:main
+FROM $BASE
+
+LABEL name="workstation-toolbox-phosh" \
+      summary="Fedora 45 toolbox image with Phosh stack dev tooling"
+
+RUN --mount=type=cache,id=toolbox-dnfcache,rw,destination=/var/cache/libdnf5 \
+    dnf install -y phoc python3-dbusmock python3-pytest umockdev wlr-randr xorg-x11-server-Xvfb && \
+    dnf builddep -y gmobile libphosh phoc phosh phosh-mobile-settings phrog

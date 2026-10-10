@@ -1,0 +1,36 @@
+# Linux kernel development toolbox image, built FROM the workstation-toolbox
+# base image. Provides kernel build tooling, cross toolchains, virtme-ng for
+# boot testing, and b4/lei for the patch workflow.
+# Create with: toolbox create kernel --image ghcr.io/samcday/workstation-config/toolbox-kernel:main
+
+ARG BASE=ghcr.io/samcday/workstation-config/toolbox:main
+FROM $BASE
+
+LABEL com.github.containers.toolbox="true" \
+      name="workstation-toolbox-kernel" \
+      version="45" \
+      usage="This image is meant to be used with the toolbox(1) command" \
+      summary="Fedora 45 toolbox image with workstation dev tooling for Linux kernel development" \
+      maintainer="Sam Day <me@samcday.com>"
+
+# Build tooling, cross toolchains, boot-testing and tracing tools, grouped per
+# packages.list. kernel-devel is deliberately not installed: it never matches
+# the host kernel version, out-of-tree module builds use
+# /run/host/usr/lib/modules/$(uname -r)/build instead.
+COPY packages.list /tmp/packages.list
+
+RUN --mount=type=cache,id=toolbox-dnfcache,rw,destination=/var/cache/libdnf5 \
+    set -eu; \
+    packages="$(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' /tmp/packages.list)"; \
+    if [ -z "$packages" ]; then \
+        echo "ERROR: no packages found in /tmp/packages.list" >&2; \
+        exit 1; \
+    fi; \
+    dnf install -y $packages; \
+    rm -f /tmp/packages.list
+
+# aarch64 musl cross toolchain lives in a COPR (not in Fedora repos).
+RUN --mount=type=cache,id=toolbox-dnfcache,rw,destination=/var/cache/libdnf5 \
+    set -eu; \
+    dnf copr enable -y samcday/aarch64-linux-musl; \
+    dnf install -y aarch64-linux-musl-toolchain

@@ -1,0 +1,31 @@
+# General compilers, runtimes and build systems for the base toolbox image.
+# Kernel/phosh/fedpkg-specific toolchains live in their variant images.
+# Fedora's rust/cargo give a working toolchain out of the box; rustup is there
+# for pinning other toolchains (installs to ~/.rustup, shared with the host).
+abi-compliance-checker
+bison
+cargo
+ccache
+clang-tools-extra
+cloc
+cmake
+flex
+gcc
+gcc-c++
+gcc-gnat
+gdb
+gdb-gdbserver
+golang
+golang-bin
+java-25-openjdk-devel
+meson
+nodejs
+pipx
+protobuf-compiler
+protobuf-devel
+python3-devel
+python3-pip
+python3-pygments
+rust
+rustup
+swig

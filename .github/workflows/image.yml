@@ -109,3 +109,169 @@ jobs:
           cosign sign -y ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${TAGS}
         env:
           TAGS: ${{ steps.push.outputs.digest }}
+
+  toolbox:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+    outputs:
+      # Variants build against exactly this image, pulled by digest.
+      digest: ${{ steps.push.outputs.digest }}
+
+    steps:
+      # The base image is ~6.5 GB and the runner's / has little headroom, so
+      # pool the spare disk directly under rootless podman's storage dir and
+      # keep image-copy temp files there too (default /var/tmp is on /).
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
+          build-mount-path: /home/runner/.local/share/containers
+
+      - name: Point podman temp at the pooled disk
+        run: |
+          sudo chown "$(id -u):$(id -g)" /home/runner/.local/share/containers
+          mkdir -p /home/runner/.local/share/containers/tmp
+          echo TMPDIR=/home/runner/.local/share/containers/tmp >> "$GITHUB_ENV"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install the cosign tool except on PR
+      # https://github.com/sigstore/cosign-installer
+      - name: Install cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
+        with:
+          cosign-release: 'v2.2.4'
+
+      # Login against a Docker registry except on PR
+      # https://github.com/docker/login-action
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Image
+        run: |
+          podman build --format docker -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/toolbox:main toolbox/
+
+      - name: Push To GHCR
+        uses: redhat-actions/push-to-registry@v2
+        if: github.event_name != 'pull_request'
+        id: push
+        with:
+          registry: ${{ env.REGISTRY }}
+          image: ${{ env.IMAGE_NAME }}/toolbox
+          tags: main
+          extra-args: |
+            --disable-content-trust
+
+      - name: Sign container image
+        if: github.event_name != 'pull_request'
+        run: |
+          cosign sign -y ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/toolbox@${TAGS}
+        env:
+          TAGS: ${{ steps.push.outputs.digest }}
+
+  toolbox-variant:
+    needs: toolbox
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [phosh, kernel, fedpkg]
+
+    steps:
+      # Same disk treatment as the base job; variants are larger still (the
+      # kernel one carries cross toolchains and qemu).
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
+          build-mount-path: /home/runner/.local/share/containers
+
+      - name: Point podman temp at the pooled disk
+        run: |
+          sudo chown "$(id -u):$(id -g)" /home/runner/.local/share/containers
+          mkdir -p /home/runner/.local/share/containers/tmp
+          echo TMPDIR=/home/runner/.local/share/containers/tmp >> "$GITHUB_ENV"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install the cosign tool except on PR
+      # https://github.com/sigstore/cosign-installer
+      - name: Install cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
+        with:
+          cosign-release: 'v2.2.4'
+
+      # Login against a Docker registry except on PR
+      # https://github.com/docker/login-action
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Variants must build on the base from this run, not the last one on
+      # GHCR. On push the base job has pushed it: pull that exact digest (after
+      # login; the package may be private). PRs push nothing, so rebuild the
+      # base from the same checkout instead.
+      - name: Fetch base image
+        if: hashFiles(format('toolbox/{0}/Containerfile', matrix.variant)) != ''
+        run: |
+          if [ "${{ github.event_name }}" = pull_request ]; then
+            podman build --format docker -t localhost/workstation-toolbox:base toolbox/
+          else
+            id=$(podman pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/toolbox@${{ needs.toolbox.outputs.digest }})
+            podman tag "$id" localhost/workstation-toolbox:base
+          fi
+
+      # Variants may not exist yet in the tree; skip variant steps instead of
+      # failing when toolbox/<variant>/Containerfile is missing.
+      - name: Build Image
+        if: hashFiles(format('toolbox/{0}/Containerfile', matrix.variant)) != ''
+        run: |
+          podman build --format docker \
+            --build-arg BASE=localhost/workstation-toolbox:base \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/toolbox-${{ matrix.variant }}:main \
+            toolbox/${{ matrix.variant }}/
+
+      - name: Push To GHCR
+        if: github.event_name != 'pull_request' && hashFiles(format('toolbox/{0}/Containerfile', matrix.variant)) != ''
+        uses: redhat-actions/push-to-registry@v2
+        id: push
+        with:
+          registry: ${{ env.REGISTRY }}
+          image: ${{ env.IMAGE_NAME }}/toolbox-${{ matrix.variant }}
+          tags: main
+          extra-args: |
+            --disable-content-trust
+
+      - name: Sign container image
+        if: github.event_name != 'pull_request' && hashFiles(format('toolbox/{0}/Containerfile', matrix.variant)) != ''
+        run: |
+          cosign sign -y ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/toolbox-${{ matrix.variant }}@${TAGS}
+        env:
+          TAGS: ${{ steps.push.outputs.digest }}
