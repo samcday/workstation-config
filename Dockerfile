@@ -1,6 +1,11 @@
 FROM --platform=linux/amd64 quay.io/fedora/fedora-silverblue:45
 
-RUN dnf -y install \
+# Build-only DNF settings: retain RPMs in the cache mounts, not image layers.
+# Leave the cache intact for later builds; do not change the installed DNF config.
+ARG DNF_BUILD_OPTS="--setopt=keepcache=True --setopt=max_parallel_downloads=10 --setopt=max_downloads_per_mirror=10"
+
+RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
+    dnf $DNF_BUILD_OPTS -y install \
     https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 
 COPY RPM-GPG-KEY-chatgpt-3BFA0E4AE8B8CC16A2D9BA684A3B4A566C4660E4.asc /etc/pki/rpm-gpg/
@@ -13,8 +18,10 @@ RUN dnf copr enable -y lizardbyte/beta
 RUN dnf copr enable -y samcday/aarch64-linux-musl
 
 # <NVIDIA-BULLSHIT>
+# Refresh once after configuring the repositories. Later transactions reuse the
+# shared metadata cache, subject to DNF's normal expiry rules.
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
-    dnf install --refresh -y \
+    dnf $DNF_BUILD_OPTS install --refresh -y \
       akmods \
       kernel-devel-$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' kernel) \
       kernel-headers
@@ -23,7 +30,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
 # is broken:
 # `ERROR: Not to be used as root; start as user or 'akmodsbuild' instead.`
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
-    dnf install --refresh -y --setopt=tsflags=noscripts \
+    dnf $DNF_BUILD_OPTS install -y --setopt=tsflags=noscripts \
       akmod-nvidia
 
 # Carry an upstream candidate for NVIDIA display failures (issue #3):
@@ -41,7 +48,7 @@ COPY nvidia/*.patch /tmp/nvidia-patches/
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     set -eu && \
     V=$(rpm -q --queryformat '%{VERSION}' xorg-x11-drv-nvidia-kmodsrc) && \
-    dnf install -y gcc-c++ patch && \
+    dnf $DNF_BUILD_OPTS install -y gcc-c++ patch && \
     cd /tmp && \
     curl -sfL https://github.com/NVIDIA/open-gpu-kernel-modules/archive/refs/tags/$V.tar.gz | tar xz && \
     cd open-gpu-kernel-modules-$V && \
@@ -52,15 +59,14 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     install -m 0644 src/nvidia-modeset/_out/Linux_x86_64/nv-modeset-kernel.o \
       /tmp/kmodsrc/kernel-open/nvidia-modeset/nv-modeset-kernel.o_binary && \
     tar cJf $T -C /tmp/kmodsrc . && \
-    cd /tmp && rm -rf /tmp/kmodsrc /tmp/open-gpu-kernel-modules-$V /tmp/nvidia-patches && \
-    dnf remove -y gcc-c++
+    cd /tmp && rm -rf /tmp/kmodsrc /tmp/open-gpu-kernel-modules-$V /tmp/nvidia-patches
 
 # thanks to pbrezina for this workaround:
 # https://github.com/bootc-dev/bootc/discussions/993
 RUN akmods --force --kernels `rpm -q --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}' kernel-devel`
 
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
-    dnf install --refresh -y  \
+    dnf $DNF_BUILD_OPTS install -y  \
       xorg-x11-drv-nvidia \
       xorg-x11-drv-nvidia-cuda \
       xorg-x11-drv-nvidia-power \
@@ -70,7 +76,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
 # </NVIDIA-BULLSHIT>
 
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
-    dnf install --refresh -y \
+    dnf $DNF_BUILD_OPTS install -y \
     aarch64-linux-musl-toolchain \
     abi-compliance-checker \
     acpica-tools \
@@ -312,7 +318,7 @@ RUN set -eux; \
     chmod 0755 /usr/bin/cfssl-mkbundle
 
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
-    dnf builddep -y \
+    dnf $DNF_BUILD_OPTS builddep -y \
     gdm \
     gnome-software \
     phoc \
