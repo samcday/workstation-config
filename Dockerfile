@@ -267,6 +267,26 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
 
 RUN curl -fsSL https://github.com/oras-project/oras/releases/download/v1.3.4/oras_1.3.4_linux_amd64.tar.gz | tar -xz -C /usr/bin oras
 
+# Fedora 43+ ships Noto Color Emoji as COLRv1, which GPUI apps (Delta, Zed) can't
+# paint: emoji come out as blank space (zed-industries/zed#42255). Swap in the
+# last upstream CBDT bitmap build, which they render fine. The monochrome Noto
+# Emoji goes too: GPUI's font matcher ignores fontconfig priority and picks it
+# over the color font when both are installed (zed-industries/zed#51171).
+# default-fonts-core-emoji is a metainfo-only metapackage that gets dragged out
+# with them. The guard fails loudly if the rpm stops shipping COLRv1, which is
+# the cue to drop this block and return to the packaged font.
+RUN set -eu && \
+    test -f /usr/share/fonts/google-noto-color-emoji-fonts/Noto-COLRv1.ttf && \
+    dnf remove -y google-noto-color-emoji-fonts google-noto-emoji-fonts && \
+    workdir=$(mktemp -d) && \
+    curl -fsSL --retry 3 -o "$workdir/NotoColorEmoji.ttf" \
+      https://raw.githubusercontent.com/googlefonts/noto-emoji/v2.051/fonts/NotoColorEmoji.ttf && \
+    echo "72a635cb3d2f3524c51620cdde406b217204e8a6a06c6a096ff8ed4b5fd6e27b  $workdir/NotoColorEmoji.ttf" | sha256sum -c - && \
+    install -D -m 0644 "$workdir/NotoColorEmoji.ttf" /usr/share/fonts/noto-color-emoji-cbdt/NotoColorEmoji.ttf && \
+    rm -rf "$workdir" && \
+    fc-cache -s && \
+    test "$(fc-match -f '%{file}' emoji)" = /usr/share/fonts/noto-color-emoji-cbdt/NotoColorEmoji.ttf
+
 # Discord Rich Presence for MPRIS players. The upstream binary needs openssl3-libs,
 # not Fedora 45's default OpenSSL 4.
 RUN set -eu; \
