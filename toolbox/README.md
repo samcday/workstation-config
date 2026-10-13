@@ -20,10 +20,10 @@ toolbox is the supported tool. Distrobox is not supported.
 | `ghcr.io/samcday/workstation-config/toolbox-kernel:main` | Linux kernel development, virtme-ng | `kernel` |
 | `ghcr.io/samcday/workstation-config/toolbox-fedpkg:main` | Fedora packaging, mock | `fedpkg` |
 
-The base image builds from `toolbox/Containerfile`, with package lists in
-`toolbox/base/packages.d/*.list`. The `phosh`, `kernel`, and `fedpkg` variants
-are planned. Each variant builds from `toolbox/<variant>/Containerfile` on top
-of the base, so it contains everything in `dev`.
+The base image builds from `toolbox/Containerfile`, with its package list in
+`toolbox/base/packages.list`. Each variant builds from
+`toolbox/<variant>/Containerfile` on top of the base, so it contains
+everything in `dev`.
 
 ## First-time setup
 
@@ -60,13 +60,14 @@ not refresh images automatically. Run these commands when a new image lands.
 output, not the exit code. Remove the old image afterwards:
 `toolbox rmi <old-image-id>`, or `podman image prune`.
 
-## Host shims
+## Running tools from the host
 
-`toolbox/shims/install.sh` writes a wrapper to `~/.local/bin/<bin>` for each
-tool in the `dev` container. A wrapper runs
-`exec toolbox run -c dev -- <bin> "$@"`. Host scripts and agents then use the
-container tools without changes. Run the script again after you add tools.
-`--prune` removes wrappers for tools that no longer exist in the container.
+The tools exist only inside the containers. From a host shell, run one with
+`toolbox run -c dev -- <command>`. It runs in the current directory (which
+must be under `$HOME`) with the host's `TERM`, `DISPLAY`, `WAYLAND_DISPLAY`,
+`SSH_AUTH_SOCK`, and `XDG_*` variables. Other variables are not forwarded.
+Agents working on this machine are expected to know this and prefix commands
+themselves; there are no wrappers on the host.
 
 ## Local build
 
@@ -82,7 +83,7 @@ podman build --build-arg BASE=localhost/workstation-toolbox:test -t workstation-
 
 ## Add packages
 
-Edit a `.list` file in `toolbox/base/packages.d/`, or add one for a variant.
-Open a PR. CI builds every image. `/land` is not needed for toolbox-only
-changes: the host changes only when you pull a new image, and no reboot is
-required.
+Add a line to `toolbox/base/packages.list`, or to the variant's
+`packages.list`. Open a PR. CI builds every image. Nothing on a machine
+changes until you pull the new image and recreate the container; no reboot is
+involved.

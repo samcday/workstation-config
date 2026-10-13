@@ -12,19 +12,18 @@ LABEL com.github.containers.toolbox="true" \
       summary="Fedora 45 toolbox image with workstation dev tooling" \
       maintainer="Sam Day <me@samcday.com>"
 
-# One file per package group under base/packages.d/; add a new .list file to
-# add a group.
-COPY base/packages.d/ /tmp/packages.d/
+# Packages come from base/packages.list, one per line, '#' comments allowed.
+COPY base/packages.list /tmp/packages.list
 
 RUN --mount=type=cache,id=toolbox-dnfcache,rw,destination=/var/cache/libdnf5 \
     set -eu; \
-    packages="$(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' /tmp/packages.d/*.list)"; \
+    packages="$(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' /tmp/packages.list)"; \
     if [ -z "$packages" ]; then \
-        echo "ERROR: no packages found in /tmp/packages.d/*.list" >&2; \
+        echo "ERROR: no packages found in /tmp/packages.list" >&2; \
         exit 1; \
     fi; \
     dnf install -y dnf5-plugins $packages; \
-    rm -rf /tmp/packages.d
+    rm -f /tmp/packages.list
 
 # Tools shipped only as GitHub releases (oras, cfssl, k9s, sops).
 RUN --mount=type=cache,id=toolbox-dnfcache,rw,destination=/var/cache/libdnf5 \

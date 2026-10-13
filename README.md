@@ -1,13 +1,17 @@
 # workstation-config
 
-My home desktop and personal laptop run Fedora Silverblue. I'm layering extra changes on top in the Dockerfile, and then booting this image using `rpm-ostree` native OCI container support.
+My home desktop and personal laptop run Fedora Silverblue. Every image they use
+is defined here and built by CI:
 
-Mostly, the layered changes are some extra package repos and a bunch of extra packages.
+- [host/](host/README.md): the Silverblue image each machine boots. Kept close
+  to stock; only what must be in the booted OS is layered on.
+- [toolbox/](toolbox/README.md): toolbox container images with the dev tooling.
+  A base image plus variants for phosh, kernel, and Fedora packaging work.
+  Updated with an image pull, no reboot.
 
-The host image is being slimmed toward stock Silverblue: dev tooling is moving out of the Dockerfile and into a separate [Fedora toolbox image](toolbox/README.md), which can be updated with a simple image pull instead of a reboot.
+Changes land through a pull request and a green `Image` workflow run; see
+`.agents/skills/land/SKILL.md`. CI only builds the images a change touches.
 
 The repository retains a [ChatGPT Computer remote control workaround](chatgpt/README.md)
 previously used for pairing the Linux desktop clients and controlling active tasks
 from either machine. The image no longer applies it.
-
-In future, I hope to rebase this image/repo on top of bootc and use that instead.

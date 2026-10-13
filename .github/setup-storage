@@ -1,0 +1,32 @@
+#!/bin/sh
+# Put container storage and temp files on the runner's largest filesystem.
+#
+# GitHub's hosted runners have a small root filesystem and a larger one under
+# $RUNNER_TEMP (/mnt on ubuntu-24.04). Self-hosted runners usually have one
+# big disk, where this is a no-op relocation. Either way, nothing here depends
+# on the hosted runner's layout, and no preinstalled toolchains are deleted.
+set -eu
+
+base=${RUNNER_TEMP:?}/containers
+mkdir -p "$base/storage" "$base/root-storage" "$base/tmp"
+
+# Rootless podman (toolbox images).
+mkdir -p ~/.config/containers
+cat > ~/.config/containers/storage.conf <<CONF
+[storage]
+driver = "overlay"
+graphroot = "$base/storage"
+runroot = "/run/user/$(id -u)/containers"
+CONF
+
+# Rootful buildah/podman (host image: rechunk needs root).
+sudo mkdir -p /etc/containers
+sudo tee /etc/containers/storage.conf >/dev/null <<CONF
+[storage]
+driver = "overlay"
+graphroot = "$base/root-storage"
+runroot = "/run/containers/storage"
+CONF
+
+echo "TMPDIR=$base/tmp" >> "$GITHUB_ENV"
+df -h "$base" /

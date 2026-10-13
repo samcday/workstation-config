@@ -1,3 +1,9 @@
+# Silverblue host image. Only what must live in the booted OS belongs here:
+# kernel modules and the initrd, boot and login-time services, GNOME Shell
+# extensions, device permissions, and desktop apps with no Flatpak. Dev
+# tooling lives in the toolbox images (../toolbox), which update without a
+# reboot. Keep this image small enough to build on a stock GitHub runner.
+
 FROM --platform=linux/amd64 quay.io/fedora/fedora-silverblue:45
 
 RUN dnf -y install \
@@ -6,11 +12,7 @@ RUN dnf -y install \
 COPY RPM-GPG-KEY-chatgpt-3BFA0E4AE8B8CC16A2D9BA684A3B4A566C4660E4.asc /etc/pki/rpm-gpg/
 COPY *.repo /etc/yum.repos.d/
 
-RUN dnf copr enable -y gmaglione/podman-bootc
-RUN dnf copr enable -y samcday/phosh-nightly
 RUN dnf copr enable -y rowanfr/fw-ectool
-RUN dnf copr enable -y lizardbyte/beta
-RUN dnf copr enable -y samcday/aarch64-linux-musl
 
 # <NVIDIA-BULLSHIT>
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
@@ -69,203 +71,47 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
       nvidia-persistenced
 # </NVIDIA-BULLSHIT>
 
+# Everything a toolbox cannot provide: boot/login services, device access,
+# Shell extensions, and desktop apps without a Flatpak. Dev tooling is in
+# ../toolbox; GUI apps with Flatpaks are installed per machine (see README).
 RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
     dnf install --refresh -y \
-    aarch64-linux-musl-toolchain \
-    abi-compliance-checker \
-    acpica-tools \
-    aerc \
-    age \
     android-tools \
-    apitrace \
-    apk-tools \
-    aria2 \
-    arm-none-eabi-gcc-cs \
-    asciinema \
-    b4 \
-    bat \
-    bind-utils \
-    binutils-devel \
-    binwalk \
-    bison \
     bootc \
-    butane \
-    cage \
-    calls \
-    cargo \
-    ccache \
     chatgpt \
-    clang-tools-extra \
     claude-desktop-unofficial \
-    cloc \
-    cmake \
-    copr-cli \
-    codium \
-    coreos-installer \
-    debootstrap \
-    dejavu-sans-mono-fonts \
-    devscripts \
     ddcutil \
+    dejavu-sans-mono-fonts \
     dkms \
-    docker-buildx \
-    docker-cli \
-    docker-compose \
-    d-spy \
-    dtc \
-    dt-schema \
     fastfetch \
-    fcgiwrap \
-    fedora-packager \
-    fedora-repos-rawhide \
-    fedora-review \
-    fio \
-    flatpak-builder \
-    flex \
-    ftp \
+    fuse-sshfs \
     fw-ectool \
-    fzf \
-    gamescope \
-    gcc \
-    gcc-aarch64-linux-gnu \
-    gcc-c++ \
-    gcc-gnat \
-    gdb \
-    gdb-gdbserver \
-    gh \
-    giflib-devel \
     git-credential-libsecret \
-    git-lfs \
-    git-subtree \
-    glibc-devel.i686 \
-    gnome-bluetooth-libs-devel \
     gnome-console \
     gnome-shell-extension-appindicator \
     gnome-shell-extension-caffeine \
     gnome-tweaks \
-    golang \
-    golang-bin \
     greetd \
     greetd-fakegreet \
-    gsound-devel \
-    gtk4-devel-tools \
     gtkgreet \
-    hcloud \
     heimdall \
-    helm \
     htop \
-    hwloc-gui \
-    iperf3 \
-    java-25-openjdk-devel \
     kde-connect \
-    kind \
-    kiwi-cli \
-    kiwi-systemdeps \
-    kmscube \
-    kubeadm \
-    kubectl \
-    kubelet \
-    kustomize \
     libavcodec-freeworld \
-    jbigkit-devel \
-    just \
-    lei \
-    liblerc-devel \
-    libnotify-devel \
-    libphosh-devel \
-    libsamplerate-devel \
-    libunistring-devel \
-    libxdo-devel \
-    libXScrnSaver-devel \
-    libXpresent-devel \
-    libxkbcommon-x11-devel \
-    lshw \
-    meson \
-    minidlna \
-    mkosi \
-    mpv \
     nbd \
-    ncurses-devel \
-    net-tools \
-    nginx \
-    nmap \
-    nodejs \
-    obs-studio \
-    obs-studio-devel \
-    openssl \
-    openssl-devel \
-    openssl3-libs \
-    packit \
-    dwarves \
-    perl-FindBin \
-    perl-IPC-Cmd \
-    perl-Time-Piece \
     phrog \
-    pipewire-devel \
-    pipx \
-    pmbootstrap \
-    podman-bootc \
-    postgresql \
-    prometheus \
-    protobuf-compiler \
-    protobuf-devel \
-    public-inbox-server \
-    python3-dbusmock \
-    python3-devel \
-    python3-pip \
-    python3-pygments \
-    python3-typogrify \
-    qemu-user-static-arm \
-    rclone \
-    restic \
-    ripgrep \
-    rust-srpm-macros \
-    rust2rpm \
-    rustup \
-    screen \
     seatd \
-    ShellCheck \
-    socat \
-    speedtest-cli \
-    spice-protocol \
-    fuse-sshfs \
-    steam \
-    strace \
-    Sunshine \
-    sway \
-    swig \
     syncthing \
     tailscale \
-    tang \
-    tcpdump \
-    tftp \
-    tftp-server \
     tio \
     tmux \
-    opentofu \
-    tpm2-tss-engine \
-    tpm2-tss-engine-utilities \
-    systemd-ukify \
     usbip \
     vim-enhanced \
     virt-install \
     virt-manager \
-    virtme-ng \
-    waypipe \
-    wine \
     wireshark \
     wl-clipboard \
-    wf-recorder \
-    xapian-core \
-    xmlstarlet \
-    xorg-x11-server-Xwayland-devel \
-    yamllint \
-    yt-dlp \
-    yq \
-    zsh \
-    https://github.com/derailed/k9s/releases/download/v0.50.15/k9s_linux_amd64.rpm \
-    https://github.com/getsops/sops/releases/download/v3.11.0/sops-3.11.0-1.x86_64.rpm
-
-RUN curl -fsSL https://github.com/oras-project/oras/releases/download/v1.3.4/oras_1.3.4_linux_amd64.tar.gz | tar -xz -C /usr/bin oras
+    zsh
 
 # Fedora 43+ ships Noto Color Emoji as COLRv1, which GPUI apps (Delta, Zed) can't
 # paint: emoji come out as blank space (zed-industries/zed#42255). Swap in the
@@ -289,6 +135,8 @@ RUN set -eu && \
 
 # Discord Rich Presence for MPRIS players. The upstream binary needs openssl3-libs,
 # not Fedora 45's default OpenSSL 4.
+RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
+    dnf install -y openssl3-libs
 RUN set -eu; \
     version=1.9.1; \
     workdir=$(mktemp -d); \
@@ -303,30 +151,7 @@ RUN set -eu; \
 COPY mprisence.service /usr/lib/systemd/user/mprisence.service
 RUN systemctl --global enable mprisence.service
 
-RUN set -eux; \
-    for b in cfssl cfssljson multirootca cfssl-bundle cfssl-certinfo cfssl-newkey cfssl-scan; do \
-      curl -fsSL -o "/usr/bin/$b" "https://github.com/cloudflare/cfssl/releases/download/v1.6.5/${b}_1.6.5_linux_amd64"; \
-      chmod 0755 "/usr/bin/$b"; \
-    done; \
-    curl -fsSL -o /usr/bin/cfssl-mkbundle https://github.com/cloudflare/cfssl/releases/download/v1.6.5/mkbundle_1.6.5_linux_amd64; \
-    chmod 0755 /usr/bin/cfssl-mkbundle
-
-RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
-    dnf builddep -y \
-    gdm \
-    gnome-software \
-    phoc \
-    phosh \
-    phosh-mobile-settings
-
 RUN akmods --force --kernels `rpm -q --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}' kernel-devel`
-
-RUN mkdir /nix
-
-# Alternatives are broken. Should figure out why.
-# for now: hax.
-RUN ln -sf /usr/bin/ld.bfd /usr/bin/ld
-RUN ln -sf /usr/lib/golang/bin/go /usr/bin/go
 
 # ChatGPT hardcodes X11 ozone, where its stray override-redirect avatarOverlay window renders the app click-through. Force Wayland.
 RUN grep -q '^Exec=chatgpt %U' /usr/share/applications/chatgpt.desktop && \

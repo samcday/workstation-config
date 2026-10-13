@@ -1,0 +1,255 @@
+name: Image
+
+# Builds every image in this repo. Jobs run only when their inputs changed
+# (host/ or toolbox/), except on the daily schedule and manual dispatch,
+# which rebuild everything so base-image updates are picked up.
+#
+# Tags: pushes to main publish `:main`. Pull requests publish `:pr-<n>` so a
+# draft PR yields pullable images for testing before anything lands.
+#
+# Disk: images are large (the toolbox base is ~6.5 GB, the host image bigger).
+# `setup-storage` moves rootless podman storage and TMPDIR onto the runner's
+# largest filesystem using only $RUNNER_TEMP, so the same workflow runs on a
+# self-hosted runner without GitHub-runner-specific disk tricks.
+
+on:
+  schedule:
+    - cron: 22 9 * * *
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  # `main` on push, `pr-<n>` on pull requests, `main` on schedule/dispatch.
+  TAG: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || 'main' }}
+
+jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      host: ${{ steps.filter.outputs.host == 'true' || github.event_name != 'push' && github.event_name != 'pull_request' }}
+      toolbox: ${{ steps.filter.outputs.toolbox == 'true' || github.event_name != 'push' && github.event_name != 'pull_request' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        id: filter
+        with:
+          filters: |
+            host:
+              - 'host/**'
+              - '.github/workflows/image.yml'
+            toolbox:
+              - 'toolbox/**'
+              - '.github/workflows/image.yml'
+
+  host:
+    needs: changes
+    if: needs.changes.outputs.host == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up storage
+        run: .github/setup-storage
+
+      # https://github.com/sigstore/cosign-installer
+      - name: Install cosign
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
+        with:
+          cosign-release: 'v2.2.4'
+
+      # https://github.com/docker/login-action
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        run: |
+          sudo buildah build --format docker --tag raw-img host/
+
+      # Reprocess raw-img using rechunk (ostree-aware layering) which will delete it.
+      - uses: hhd-dev/rechunk@v0.8.6
+        id: rechunk
+        with:
+          rechunk: 'ghcr.io/hhd-dev/rechunk:v0.8.6'
+          ref: 'raw-img'
+          prev-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main"
+          skip_compression: true
+          version: ${{ env.TAG }}
+
+      - name: Load in podman and tag
+        run: |
+          IMAGE=$(podman pull ${{ steps.rechunk.outputs.ref }})
+          sudo rm -rf ${{ steps.rechunk.outputs.output }}
+          podman tag $IMAGE ${{ env.IMAGE_NAME }}:${{ env.TAG }}
+
+      - name: Push to GHCR
+        uses: redhat-actions/push-to-registry@v2
+        id: push
+        with:
+          registry: ${{ env.REGISTRY }}
+          image: ${{ env.IMAGE_NAME }}
+          tags: ${{ env.TAG }}
+          extra-args: |
+            --disable-content-trust
+
+      - name: Sign image
+        run: |
+          cosign sign -y ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${DIGEST}
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
+
+  toolbox:
+    needs: changes
+    if: needs.changes.outputs.toolbox == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    outputs:
+      # Variants build against exactly this image, pulled by digest.
+      digest: ${{ steps.push.outputs.digest }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up storage
+        run: .github/setup-storage
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
+        with:
+          cosign-release: 'v2.2.4'
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        run: |
+          podman build --format docker -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/toolbox:${{ env.TAG }} toolbox/
+
+      # Prove the image is a toolbox image and that its tools run, before
+      # anything is pushed.
+      - name: Smoke test
+        run: |
+          set -eu
+          img=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/toolbox:${{ env.TAG }}
+          test "$(podman inspect "$img" --format '{{index .Config.Labels "com.github.containers.toolbox"}}')" = true
+          podman run --rm "$img" sh -c 'rg --version && cargo --version && go version && kubectl version --client && oras version && sops --version'
+
+      - name: Push to GHCR
+        uses: redhat-actions/push-to-registry@v2
+        id: push
+        with:
+          registry: ${{ env.REGISTRY }}
+          image: ${{ env.IMAGE_NAME }}/toolbox
+          tags: ${{ env.TAG }}
+          extra-args: |
+            --disable-content-trust
+
+      - name: Sign image
+        run: |
+          cosign sign -y ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/toolbox@${DIGEST}
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
+
+  toolbox-variant:
+    needs: toolbox
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [phosh, kernel, fedpkg]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up storage
+        run: .github/setup-storage
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
+        with:
+          cosign-release: 'v2.2.4'
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build on the base from this run, not whatever tag is on GHCR.
+      - name: Fetch base image
+        run: |
+          id=$(podman pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/toolbox@${{ needs.toolbox.outputs.digest }})
+          podman tag "$id" localhost/workstation-toolbox:base
+
+      - name: Build image
+        run: |
+          podman build --format docker \
+            --build-arg BASE=localhost/workstation-toolbox:base \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/toolbox-${{ matrix.variant }}:${{ env.TAG }} \
+            toolbox/${{ matrix.variant }}/
+
+      # One command per variant that only works if its builddeps are present.
+      - name: Smoke test
+        run: |
+          set -eu
+          img=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/toolbox-${{ matrix.variant }}:${{ env.TAG }}
+          test "$(podman inspect "$img" --format '{{index .Config.Labels "com.github.containers.toolbox"}}')" = true
+          case ${{ matrix.variant }} in
+            phosh)  podman run --rm "$img" sh -c 'pkg-config --modversion libphosh-0.45 gtk+-3.0 wlroots-0.20 && phoc --version' ;;
+            kernel) podman run --rm "$img" sh -c 'vng --version && aarch64-linux-gnu-gcc --version | head -1 && aarch64-linux-musl-gcc --version | head -1' ;;
+            fedpkg) podman run --rm "$img" sh -c 'mock --version && rpmlint --version && fedpkg --help >/dev/null && mock --debug-config 2>/dev/null | grep -q "isolation.*simple"' ;;
+          esac
+
+      - name: Push to GHCR
+        uses: redhat-actions/push-to-registry@v2
+        id: push
+        with:
+          registry: ${{ env.REGISTRY }}
+          image: ${{ env.IMAGE_NAME }}/toolbox-${{ matrix.variant }}
+          tags: ${{ env.TAG }}
+          extra-args: |
+            --disable-content-trust
+
+      - name: Sign image
+        run: |
+          cosign sign -y ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/toolbox-${{ matrix.variant }}@${DIGEST}
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
