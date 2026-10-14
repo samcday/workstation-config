@@ -111,7 +111,8 @@ jobs:
           test "$RECHUNK_LOCATION" = "$GITHUB_WORKSPACE/$RAW_IMAGE"
           IMAGE=$(podman pull "$RECHUNK_REF")
           podman tag "$IMAGE" "$IMAGE_NAME:$TAG"
-          rm -rf -- "$RECHUNK_LOCATION"
+          # Rechunk output can require root to remove, even after its chown.
+          sudo rm -rf -- "$RECHUNK_LOCATION"
           df -h / /var/lib/containers
 
       - name: Push to GHCR
