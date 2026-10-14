@@ -15,7 +15,7 @@ COPY *.repo /etc/yum.repos.d/
 RUN dnf copr enable -y rowanfr/fw-ectool
 
 # <NVIDIA-BULLSHIT>
-RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
+RUN --mount=type=cache,id=dnfcache,destination=/var/cache/libdnf5 \
     dnf install --refresh -y \
       akmods \
       kernel-devel-$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' kernel) \
@@ -24,7 +24,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
 # we isolate this step and run it without scripts because the %post
 # is broken:
 # `ERROR: Not to be used as root; start as user or 'akmodsbuild' instead.`
-RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
+RUN --mount=type=cache,id=dnfcache,destination=/var/cache/libdnf5 \
     dnf install --refresh -y --setopt=tsflags=noscripts \
       akmod-nvidia
 
@@ -40,7 +40,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
 # mismatch. When a patch stops applying (merged, or code drifted) this fails
 # loudly. Drop the corresponding patch once its fix is upstream.
 COPY nvidia/*.patch /tmp/nvidia-patches/
-RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
+RUN --mount=type=cache,id=dnfcache,destination=/var/cache/libdnf5 \
     set -eu && \
     V=$(rpm -q --queryformat '%{VERSION}' xorg-x11-drv-nvidia-kmodsrc) && \
     dnf install -y gcc-c++ patch && \
@@ -61,7 +61,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
 # https://github.com/bootc-dev/bootc/discussions/993
 RUN akmods --force --kernels `rpm -q --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}' kernel-devel`
 
-RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
+RUN --mount=type=cache,id=dnfcache,destination=/var/cache/libdnf5 \
     dnf install --refresh -y  \
       xorg-x11-drv-nvidia \
       xorg-x11-drv-nvidia-cuda \
@@ -74,7 +74,7 @@ RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
 # Everything a toolbox cannot provide: boot/login services, device access,
 # Shell extensions, and desktop apps without a Flatpak. Dev tooling is in
 # ../toolbox; GUI apps with Flatpaks are installed per machine (see README).
-RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
+RUN --mount=type=cache,id=dnfcache,destination=/var/cache/libdnf5 \
     dnf install --refresh -y \
     android-tools \
     bootc \
@@ -135,7 +135,7 @@ RUN set -eu && \
 
 # Discord Rich Presence for MPRIS players. The upstream binary needs openssl3-libs,
 # not Fedora 45's default OpenSSL 4.
-RUN --mount=type=cache,id=dnfcache,rw,destination=/var/cache/libdnf5 \
+RUN --mount=type=cache,id=dnfcache,destination=/var/cache/libdnf5 \
     dnf install -y openssl3-libs
 RUN set -eu; \
     version=1.9.1; \

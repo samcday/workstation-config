@@ -9,6 +9,6 @@ FROM $BASE
 LABEL name="workstation-toolbox-phosh" \
       summary="Fedora 45 toolbox image with Phosh stack dev tooling"
 
-RUN --mount=type=cache,id=toolbox-dnfcache,rw,destination=/var/cache/libdnf5 \
+RUN --mount=type=cache,id=toolbox-dnfcache,destination=/var/cache/libdnf5 \
     dnf install -y phoc python3-dbusmock python3-pytest umockdev wlr-randr xorg-x11-server-Xvfb && \
     dnf builddep -y gmobile libphosh phoc phosh phosh-mobile-settings phrog

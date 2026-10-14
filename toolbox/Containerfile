@@ -15,7 +15,8 @@ LABEL com.github.containers.toolbox="true" \
 # Packages come from base/packages.list, one per line, '#' comments allowed.
 COPY base/packages.list /tmp/packages.list
 
-RUN --mount=type=cache,id=toolbox-dnfcache,rw,destination=/var/cache/libdnf5 \
+# Cache mounts are writable by default. Explicit rw breaks older Buildah.
+RUN --mount=type=cache,id=toolbox-dnfcache,destination=/var/cache/libdnf5 \
     set -eu; \
     packages="$(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' /tmp/packages.list)"; \
     if [ -z "$packages" ]; then \
@@ -26,6 +27,6 @@ RUN --mount=type=cache,id=toolbox-dnfcache,rw,destination=/var/cache/libdnf5 \
     rm -f /tmp/packages.list
 
 # Tools shipped only as GitHub releases (oras, cfssl, k9s, sops).
-RUN --mount=type=cache,id=toolbox-dnfcache,rw,destination=/var/cache/libdnf5 \
+RUN --mount=type=cache,id=toolbox-dnfcache,destination=/var/cache/libdnf5 \
     --mount=type=bind,source=base/install-binaries.sh,target=/tmp/install-binaries.sh \
     sh /tmp/install-binaries.sh

@@ -19,7 +19,7 @@ LABEL com.github.containers.toolbox="true" \
 # /run/host/usr/lib/modules/$(uname -r)/build instead.
 COPY packages.list /tmp/packages.list
 
-RUN --mount=type=cache,id=toolbox-dnfcache,rw,destination=/var/cache/libdnf5 \
+RUN --mount=type=cache,id=toolbox-dnfcache,destination=/var/cache/libdnf5 \
     set -eu; \
     packages="$(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' /tmp/packages.list)"; \
     if [ -z "$packages" ]; then \
@@ -30,7 +30,7 @@ RUN --mount=type=cache,id=toolbox-dnfcache,rw,destination=/var/cache/libdnf5 \
     rm -f /tmp/packages.list
 
 # aarch64 musl cross toolchain lives in a COPR (not in Fedora repos).
-RUN --mount=type=cache,id=toolbox-dnfcache,rw,destination=/var/cache/libdnf5 \
+RUN --mount=type=cache,id=toolbox-dnfcache,destination=/var/cache/libdnf5 \
     set -eu; \
     dnf copr enable -y samcday/aarch64-linux-musl; \
     dnf install -y aarch64-linux-musl-toolchain
