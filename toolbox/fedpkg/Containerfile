@@ -26,17 +26,17 @@ RUN --mount=type=cache,id=toolbox-dnfcache,destination=/var/cache/libdnf5 \
     dnf install -y $packages; \
     rm -f /tmp/packages.list
 
-# mock isolation: the default "auto" picks systemd-nspawn, which needs
-# CAP_SYS_ADMIN that a rootless toolbox container does not have; mock >= 2.2
-# then falls back to plain chroot at runtime. Set "simple" explicitly so the
-# behaviour is intended, not a one-time accident. mock-core-configs on F45
-# ships /etc/mock/site-defaults.cfg as a plain file and reads no
-# site-defaults.d/ drop-in directory (checked in mock 6.9), so append to the
-# file instead.
+# Use chroot isolation inside toolbox, not systemd-nspawn. Keep the target's
+# bootstrap chroot, but populate it with DNF rather than nested Podman.
+# Toolbox shares host IPC: nested Podman cannot open a host-root-owned
+# /dev/shm/libpod_lock from this rootless user namespace.
+# Mock 6.9 reads site-defaults.cfg, not a site-defaults.d drop-in directory.
+# https://rpm-software-management.github.io/mock/Feature-container-for-bootstrap
 RUN printf '%s\n' \
-    "# toolbox-fedpkg image: systemd-nspawn needs CAP_SYS_ADMIN, which" \
-    "# rootless toolbox containers do not have. Use plain chroot." \
+    "# toolbox-fedpkg: chroot isolation with a DNF-populated bootstrap." \
     "config_opts['isolation'] = 'simple'" \
+    "config_opts['use_bootstrap'] = True" \
+    "config_opts['use_bootstrap_image'] = False" \
     >> /etc/mock/site-defaults.cfg
 
 # toolbox writes /etc/krb5.conf.d/kcm_default_ccache (KCM as the default

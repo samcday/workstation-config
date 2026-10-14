@@ -5,14 +5,19 @@ Koji, COPR and Packit clients, on top of the base workstation toolbox.
 
 ## Create and first use
 
+Run these commands on the host, without `sudo`. The first `toolbox run`
+initializes the container user. The `podman exec` command adds that user to
+the container's `mock` group, not the host's group.
+
 ```shell
 toolbox create fedpkg --image ghcr.io/samcday/workstation-config/toolbox-fedpkg:main
+toolbox run -c fedpkg -- true
+podman exec --user 0 fedpkg usermod -aG mock "$(id -un)"
 toolbox enter fedpkg
+```
 
-# toolbox makes your user at create time, so mock group membership is
-# per fresh container; a login hint prints until you have run:
-sudo usermod -aG mock $USER && toolbox enter fedpkg
-
+Inside the container, authenticate to Fedora when needed:
+```shell
 fkinit -u <fas-username>
 ```
 
@@ -25,6 +30,24 @@ mock -r fedora-rawhide-x86_64 --rebuild <src.rpm>
 fedora-review -b <bug-number>                 # complete package review
 copr-cli build <project> <src.rpm>
 ```
+
+Mock uses a bootstrap chroot, a separate environment with the target's
+package manager. This image populates it with DNF instead of pulling an
+OCI image through nested Podman.
+
+Toolbox shares host IPC. Nested Podman can fail with
+`failed to open 2048 locks in /libpod_lock: permission denied` when the host
+already owns that lock. Do not delete the host lock or change its permissions.
+
+For an older image, pass the supported override for one build:
+
+```shell
+fedpkg mockbuild -- --no-bootstrap-image
+```
+
+This keeps the bootstrap chroot enabled. It avoids the nested Podman call,
+not the separate package build environment. The toolbox base must remain
+new enough for its DNF and RPM to install the target's bootstrap packages.
 
 ## Mock chroots are container-local
 

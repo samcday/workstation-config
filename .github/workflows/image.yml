@@ -251,12 +251,27 @@ jobs:
               # Load the real configuration without demanding build privileges.
               podman run --rm "$img" python3 -c '
           from mockbuild.config import load_config
-          config = load_config("/etc/mock", "fedora-45-x86_64")
-          assert config["isolation"] == "simple", config["isolation"]
-          print("Fedora 45 mock configuration loads; isolation=" + config["isolation"])
+          for target in ("fedora-45-x86_64", "fedora-rawhide-x86_64"):
+              config = load_config("/etc/mock", target)
+              assert config["isolation"] == "simple", (target, config["isolation"])
+              assert config["use_bootstrap"] is True, target
+              assert config["use_bootstrap_image"] is False, target
+              print(target + ": simple isolation, DNF bootstrap enabled")
           '
               ;;
           esac
+
+      - name: Test Rawhide packaging
+        if: matrix.variant == 'fedpkg'
+        timeout-minutes: 20
+        run: |
+          # Rootless, with the namespace capabilities Mock needs in toolbox.
+          # Only the test script is mounted, not the host home or Podman store
+          # or socket. Never reuse a user's toolbox for this destructive test.
+          img="$REGISTRY/$IMAGE_NAME/toolbox-fedpkg:$TAG"
+          podman run --rm --privileged --env FEDPKG_SMOKE_TEST=1 \
+            --volume "$GITHUB_WORKSPACE/toolbox/fedpkg/smoke-test.sh:/tmp/smoke-test.sh:ro" \
+            "$img" bash /tmp/smoke-test.sh
 
       - name: Push to GHCR
         uses: redhat-actions/push-to-registry@v2
