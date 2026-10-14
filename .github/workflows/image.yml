@@ -7,10 +7,9 @@ name: Image
 # Tags: pushes to main publish `:main`. Pull requests publish `:pr-<n>` so a
 # draft PR yields pullable images for testing before anything lands.
 #
-# Disk: images are large (the toolbox base is ~6.5 GB, the host image bigger).
-# `setup-storage` moves rootless podman storage and TMPDIR onto the runner's
-# largest filesystem using only $RUNNER_TEMP, so the same workflow runs on a
-# self-hosted runner without GitHub-runner-specific disk tricks.
+# `setup-storage` preserves the runner's container configuration, gives each
+# job its own TMPDIR, and reports actual disk space. The host rechunk action
+# also uses rootful storage and a fixed cache volume; use disposable runners.
 
 on:
   schedule:
@@ -49,14 +48,18 @@ jobs:
             host:
               - 'host/**'
               - '.github/workflows/image.yml'
+              - '.github/setup-storage'
             toolbox:
               - 'toolbox/**'
               - '.github/workflows/image.yml'
+              - '.github/setup-storage'
 
   host:
     needs: changes
     if: needs.changes.outputs.host == 'true'
     runs-on: ubuntu-24.04
+    env:
+      RAW_IMAGE: raw-img-${{ github.run_id }}-${{ github.run_attempt }}
     permissions:
       contents: read
       packages: write
@@ -87,23 +90,29 @@ jobs:
 
       - name: Build image
         run: |
-          sudo buildah build --format docker --tag raw-img host/
+          sudo env TMPDIR="$TMPDIR" buildah build --format docker --tag "$RAW_IMAGE" host/
+          df -h / /var/lib/containers
 
-      # Reprocess raw-img using rechunk (ostree-aware layering) which will delete it.
+      # Rechunk deletes this job's raw image after creating the OSTree commit.
       - uses: hhd-dev/rechunk@v0.8.6
         id: rechunk
         with:
           rechunk: 'ghcr.io/hhd-dev/rechunk:v0.8.6'
-          ref: 'raw-img'
+          ref: ${{ env.RAW_IMAGE }}
           prev-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main"
           skip_compression: true
           version: ${{ env.TAG }}
 
       - name: Load in podman and tag
+        env:
+          RECHUNK_REF: ${{ steps.rechunk.outputs.ref }}
+          RECHUNK_LOCATION: ${{ steps.rechunk.outputs.location }}
         run: |
-          IMAGE=$(podman pull ${{ steps.rechunk.outputs.ref }})
-          sudo rm -rf ${{ steps.rechunk.outputs.output }}
-          podman tag $IMAGE ${{ env.IMAGE_NAME }}:${{ env.TAG }}
+          test "$RECHUNK_LOCATION" = "$GITHUB_WORKSPACE/$RAW_IMAGE"
+          IMAGE=$(podman pull "$RECHUNK_REF")
+          podman tag "$IMAGE" "$IMAGE_NAME:$TAG"
+          rm -rf -- "$RECHUNK_LOCATION"
+          df -h / /var/lib/containers
 
       - name: Push to GHCR
         uses: redhat-actions/push-to-registry@v2
@@ -117,7 +126,7 @@ jobs:
 
       - name: Sign image
         run: |
-          cosign sign -y ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${DIGEST}
+          cosign sign -y "$REGISTRY/$IMAGE_NAME@$DIGEST"
         env:
           DIGEST: ${{ steps.push.outputs.digest }}
 
@@ -177,7 +186,7 @@ jobs:
 
       - name: Sign image
         run: |
-          cosign sign -y ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/toolbox@${DIGEST}
+          cosign sign -y "$REGISTRY/$IMAGE_NAME/toolbox@$DIGEST"
         env:
           DIGEST: ${{ steps.push.outputs.digest }}
 
@@ -234,8 +243,18 @@ jobs:
           test "$(podman inspect "$img" --format '{{index .Config.Labels "com.github.containers.toolbox"}}')" = true
           case ${{ matrix.variant }} in
             phosh)  podman run --rm "$img" sh -c 'pkg-config --modversion libphosh-0.45 gtk+-3.0 wlroots-0.20 && phoc --version' ;;
-            kernel) podman run --rm "$img" sh -c 'vng --version && aarch64-linux-gnu-gcc --version | head -1 && aarch64-linux-musl-gcc --version | head -1' ;;
-            fedpkg) podman run --rm "$img" sh -c 'mock --version && rpmlint --version && fedpkg --help >/dev/null && mock --debug-config 2>/dev/null | grep -q "isolation.*simple"' ;;
+            kernel) podman run --rm "$img" sh -ec 'vng --version; aarch64-linux-gnu-gcc --version; aarch64-linux-musl-gcc --version' ;;
+            fedpkg)
+              podman run --rm "$img" sh -ec 'mock --version; rpmlint --version; fedpkg --help'
+              # The CLI tries to unshare namespaces even for --debug-config.
+              # Load the real configuration without demanding build privileges.
+              podman run --rm "$img" python3 -c '
+          from mockbuild.config import load_config
+          config = load_config("/etc/mock", "fedora-45-x86_64")
+          assert config["isolation"] == "simple", config["isolation"]
+          print("Fedora 45 mock configuration loads; isolation=" + config["isolation"])
+          '
+              ;;
           esac
 
       - name: Push to GHCR
@@ -250,6 +269,6 @@ jobs:
 
       - name: Sign image
         run: |
-          cosign sign -y ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/toolbox-${{ matrix.variant }}@${DIGEST}
+          cosign sign -y "$REGISTRY/$IMAGE_NAME/toolbox-${{ matrix.variant }}@$DIGEST"
         env:
           DIGEST: ${{ steps.push.outputs.digest }}
