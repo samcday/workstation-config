@@ -10,9 +10,12 @@ FROM --platform=linux/amd64 quay.io/fedora/fedora-silverblue:45
 # Leave the cache intact for later builds; do not change the installed DNF config.
 ARG DNF_BUILD_OPTS="--setopt=keepcache=True --setopt=max_parallel_downloads=10 --setopt=max_downloads_per_mirror=10"
 
+# Fetch the repository RPMs from RPM Fusion's origin. The redirector selected
+# an unreachable mirror in GHA; package repositories still use their mirrorlists.
 RUN --mount=type=cache,id=dnfcache,destination=/var/cache/libdnf5 \
     dnf $DNF_BUILD_OPTS -y install \
-    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+    https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
+    https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 
 COPY RPM-GPG-KEY-chatgpt-3BFA0E4AE8B8CC16A2D9BA684A3B4A566C4660E4.asc /etc/pki/rpm-gpg/
 COPY *.repo /etc/yum.repos.d/
