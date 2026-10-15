@@ -1,4 +1,5 @@
 #!/bin/bash
+# Rawhide packaging regression test for the unified toolbox image.
 # Run only in a disposable rootless Podman container with --privileged.
 # Mock needs namespaces for its chroots. No host home or container storage
 # is mounted here. The published image is never modified by this test.

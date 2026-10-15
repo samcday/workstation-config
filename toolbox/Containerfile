@@ -1,7 +1,6 @@
-# Dev tooling image. This is the tooling that used to be layered directly on the
-# Silverblue host image, moved into a toolbox container so the host image can
-# shrink toward stock Silverblue. Used via toolbox(1) or distrobox. Built in CI
-# by .github/workflows/toolbox.yml; see README.md here.
+# One development toolbox: general tools, Phosh, kernel work, and Fedora
+# packaging. Build and update the tools without changing the Silverblue host.
+# CI builds .github/workflows/toolbox.yml; see README.md for use and testing.
 
 FROM registry.fedoraproject.org/fedora-toolbox:45
 
@@ -9,24 +8,53 @@ LABEL com.github.containers.toolbox="true" \
       name="workstation-toolbox" \
       version="45" \
       usage="This image is meant to be used with the toolbox(1) command" \
-      summary="Fedora 45 toolbox image with workstation dev tooling" \
+      summary="Fedora 45 toolbox for development, Phosh, kernels, and packaging" \
       maintainer="Sam Day <me@samcday.com>"
 
-# Packages come from base/packages.list, one per line, '#' comments allowed.
-COPY base/packages.list /tmp/packages.list
+# Build-only settings. Downloaded RPMs stay in the cache mount, not the image.
+ARG DNF_BUILD_OPTS="--setopt=keepcache=True --setopt=max_parallel_downloads=10 --setopt=max_downloads_per_mirror=10"
+
+COPY packages.list /tmp/packages.list
 
 # Cache mounts are writable by default. Explicit rw breaks older Buildah.
 RUN --mount=type=cache,id=toolbox-dnfcache,destination=/var/cache/libdnf5 \
     set -eu; \
+    dnf $DNF_BUILD_OPTS install -y dnf5-plugins; \
+    dnf copr enable -y samcday/aarch64-linux-musl; \
     packages="$(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' /tmp/packages.list)"; \
     if [ -z "$packages" ]; then \
         echo "ERROR: no packages found in /tmp/packages.list" >&2; \
         exit 1; \
     fi; \
-    dnf install -y dnf5-plugins $packages; \
+    dnf $DNF_BUILD_OPTS install -y $packages; \
+    dnf $DNF_BUILD_OPTS builddep -y \
+        gmobile libphosh phoc phosh phosh-mobile-settings phrog; \
     rm -f /tmp/packages.list
 
 # Tools shipped only as GitHub releases (oras, cfssl, k9s, sops).
 RUN --mount=type=cache,id=toolbox-dnfcache,destination=/var/cache/libdnf5 \
-    --mount=type=bind,source=base/install-binaries.sh,target=/tmp/install-binaries.sh \
+    --mount=type=bind,source=install-binaries.sh,target=/tmp/install-binaries.sh \
     sh /tmp/install-binaries.sh
+
+# Keep Mock's bootstrap chroot, but populate it with DNF rather than nested
+# Podman. Toolbox shares host IPC and cannot use host-root-owned Podman locks.
+# https://rpm-software-management.github.io/mock/Feature-container-for-bootstrap
+RUN printf '%s\n' \
+    "# workstation-toolbox: chroot isolation with a DNF-populated bootstrap." \
+    "config_opts['isolation'] = 'simple'" \
+    "config_opts['use_bootstrap'] = True" \
+    "config_opts['use_bootstrap_image'] = False" \
+    >> /etc/mock/site-defaults.cfg
+
+# Sort before toolbox's KCM default. krb5 includedir is first-read-wins.
+COPY config/krb5-ccache.conf /etc/krb5.conf.d/00-toolbox-file-ccache
+
+# Toolbox creates the user at runtime. Group membership is per container.
+RUN printf '%s\n' \
+    '# Fedora packaging: mock needs the user in the mock group.' \
+    'case $- in *i*) ;; *) return 0 2>/dev/null || exit 0 ;; esac' \
+    'if ! id -nG "$USER" | grep -qw mock; then' \
+    '    echo "mock: add this container user to the mock group; see the toolbox README."' \
+    'fi' \
+    > /etc/profile.d/mock-group-hint.sh \
+    && chmod 0644 /etc/profile.d/mock-group-hint.sh
