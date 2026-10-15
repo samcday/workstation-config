@@ -9,8 +9,11 @@ is defined here and built by CI:
   A base image plus variants for phosh, kernel, and Fedora packaging work.
   Updated with an image pull, no reboot.
 
-Changes land through a pull request and a green `Image` workflow run; see
-`.agents/skills/land/SKILL.md`. CI only builds the images a change touches.
+Changes land through a pull request and successful CI runs for the affected
+images; see `.agents/skills/land/SKILL.md`. The
+[host workflow](.github/workflows/host.yml) and
+[toolbox workflow](.github/workflows/toolbox.yml) use native path filters.
+Each also rebuilds weekly on Monday at 09:22 UTC and supports manual runs.
 
 The repository retains a [ChatGPT Computer remote control workaround](chatgpt/README.md)
 previously used for pairing the Linux desktop clients and controlling active tasks
