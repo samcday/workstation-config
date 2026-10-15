@@ -6,14 +6,16 @@ the NVIDIA kernel module and driver, the initrd (TPM2 unlock, early `vfio-pci`),
 sysctls, GNOME Shell extensions, the greetd login stack, device-permission
 tools whose udev rules must be on the host, and desktop apps with no Flatpak.
 
-Dev tooling is not here. It lives in the [toolbox images](../toolbox/README.md)
+Dev tooling is not here. It lives in the [toolbox image](../toolbox/README.md)
 and updates without a reboot.
 
 ## Images
 
-CI builds `ghcr.io/samcday/workstation-config:main` on every push to `main`
-that touches `host/`, and daily. Pull requests build `:pr-<n>`. Both are
-signed with cosign.
+The [Host image workflow](../.github/workflows/host.yml) builds
+`ghcr.io/samcday/workstation-config:main` for pushes to `main` that change
+`host/`, the host workflow, or `.github/setup-storage`.
+It also runs weekly on Monday at 09:22 UTC and supports manual runs.
+Pull requests build `:pr-<n>`. Both tags are signed with cosign.
 
 A machine tracks the image with bootc or rpm-ostree. To switch a machine to
 the CI-built image:
