@@ -1,0 +1,16 @@
+#!/bin/sh
+# Keep the runner's configured container stores. Never replace storage.conf.
+#
+# RUNNER_TEMP is not necessarily a separate or larger filesystem. Give this
+# job a unique temp/cache directory and report actual disk space instead.
+# Runner administrators own disk provisioning, including on self-hosted runners.
+set -eu
+
+: "${RUNNER_TEMP:?RUNNER_TEMP must name the runner temporary directory}"
+: "${GITHUB_ENV:?GITHUB_ENV must name the workflow environment file}"
+
+tmp=$(mktemp -d "$RUNNER_TEMP/workstation-containers.XXXXXX")
+printf 'TMPDIR=%s\n' "$tmp" >> "$GITHUB_ENV"
+
+printf 'Container storage configuration is unchanged. Job temp: %s\n' "$tmp"
+df -h "$tmp" "$HOME" /
