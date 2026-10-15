@@ -1,51 +1,45 @@
 # toolbox
 
-Dev tools live in [toolbox](https://containertoolbx.org/) containers, not in
-the host image. The Silverblue host image is moving toward stock Fedora. The
-tools that used to be layered onto the host are built into container images in
-this directory. Pull a new image and create a container to update the tools.
-No reboot is needed.
+One [toolbox](https://containertoolbx.org/) image contains the general tools,
+Phosh build dependencies, kernel toolchains, and Fedora packaging tools.
+Use one container named `dev` for all of them. Pull a new image and create a
+container to update the tools without a host reboot.
 
-toolbox is **not** a security sandbox. A toolbox container shares `$HOME`, the
+Toolbox is not a security sandbox. A toolbox container shares `$HOME`, the
 host network, the host PID namespace, and `/dev` with the host. It isolates
 packages from the OS, not you from the tools. Changes to shared files survive
 container removal, so do not use toolbox to run untrusted code.
 
 toolbox is the supported tool. Distrobox is not supported.
 
-## Images
+## Image
 
-| Image | Purpose | Typical container name |
-| --- | --- | --- |
-| `ghcr.io/samcday/workstation-config/toolbox:main` | General dev CLIs and toolchains | `dev` |
-| `ghcr.io/samcday/workstation-config/toolbox-phosh:main` | phosh, phoc, and phrog development | `phosh` |
-| `ghcr.io/samcday/workstation-config/toolbox-kernel:main` | Linux kernel development, virtme-ng | `kernel` |
-| `ghcr.io/samcday/workstation-config/toolbox-fedpkg:main` | Fedora packaging, mock | `fedpkg` |
+`ghcr.io/samcday/workstation-config/toolbox:main` builds from
+[Containerfile](Containerfile), with one package list in
+[packages.list](packages.list). There are no separate kernel, Phosh, or
+packaging images to choose.
 
-The base image builds from `toolbox/Containerfile`, with its package list in
-`toolbox/base/packages.list`. Each variant builds from
-`toolbox/<variant>/Containerfile` on top of the base, so it contains
-everything in `dev`.
-
-The [Toolbox images workflow](../.github/workflows/toolbox.yml) builds the
-base and all three variants when `toolbox/`, that workflow, or
+The [Toolbox image workflow](../.github/workflows/toolbox.yml) builds the
+image when `toolbox/`, that workflow, or
 `.github/setup-storage` changes. It also runs weekly on Monday at 09:22 UTC.
-Manual runs rebuild all four toolbox images.
+Manual runs rebuild the same image.
 
 ## First-time setup
 
-toolbox pulls the image during `create`:
+Run these commands on the host, without `sudo`. The first `toolbox run`
+initializes the container user. The `podman exec` command adds that user to
+the container's `mock` group for Fedora packaging, not the host's group.
 
 ```shell
 toolbox create dev --image ghcr.io/samcday/workstation-config/toolbox:main
+toolbox run -c dev -- true
+podman exec --user 0 dev usermod -aG mock "$(id -un)"
 toolbox enter dev
 ```
 
-Variants follow the same pattern:
-
-```shell
-toolbox create phosh --image ghcr.io/samcday/workstation-config/toolbox-phosh:main
-```
+Use the same `dev` container for [Phosh](guides/phosh.md),
+[kernel development](guides/kernel.md), and
+[Fedora packaging](guides/packaging.md).
 
 Toolbox (0.0.99.6 and newer) passes the host NVIDIA driver and CUDA into the
 container. You install nothing in the image and configure nothing.
@@ -66,9 +60,13 @@ toolbox create dev-trial --image "$image"
 toolbox enter dev-trial
 ```
 
-For a variant, use its image name and a separate trial container name.
 A digest identifies the image contents. It does not verify the cosign signature.
 Run your usual builds in the trial container before you replace your daily one.
+Add the trial user to `mock`, as in first-time setup, before testing packaging.
+
+Existing `phosh`, `kernel`, or `fedpkg` containers keep their old images.
+Keep them until the unified container works for your tasks. Removing them is
+optional and deletes any state that exists only inside those containers.
 
 ## Update
 
@@ -88,8 +86,8 @@ pull an image, and it does not update images automatically.
 
 `toolbox rm` and `toolbox rmi` exit with 0 even when they fail
 ([toolbox#1731](https://github.com/containers/toolbox/issues/1731)). Read the
-output, not the exit code. Remove the old image afterwards:
-`toolbox rmi <old-image-id>`, or `podman image prune`.
+output, not the exit code. After the trial, remove only old images that no
+container still needs with `toolbox rmi <old-image-id>`.
 
 ## Running tools from the host
 
@@ -106,15 +104,15 @@ themselves; there are no wrappers on the host.
 podman build -t workstation-toolbox:test toolbox/
 ```
 
-A variant, built on top of the local base:
-
-```shell
-podman build --build-arg BASE=localhost/workstation-toolbox:test -t workstation-toolbox-phosh:test toolbox/phosh/
-```
+CI runs [toolchain smoke tests](tests/smoke.sh) and a
+[Rawhide RPM build](tests/mock-build.sh) before publishing.
+The Rawhide test changes files in its disposable container. Do not run it in
+your working toolbox.
+The [capacity test](unified-experiment.md) records the hosted-runner result
+and the reasons to evaluate container-native rechunking separately.
 
 ## Add packages
 
-Add a line to `toolbox/base/packages.list`, or to the variant's
-`packages.list`. Open a PR. CI builds the base and all toolbox variants.
+Add a line to `toolbox/packages.list`. Open a PR. CI builds the one image.
 Nothing on a machine changes until you pull the new image and recreate the
 container. No reboot is involved.

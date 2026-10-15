@@ -5,8 +5,8 @@ is defined here and built by CI:
 
 - [host/](host/README.md): the Silverblue image each machine boots. Kept close
   to stock; only what must be in the booted OS is layered on.
-- [toolbox/](toolbox/README.md): toolbox container images with the dev tooling.
-  A base image plus variants for phosh, kernel, and Fedora packaging work.
+- [toolbox/](toolbox/README.md): one toolbox image for general development,
+  Phosh, kernel work, and Fedora packaging.
   Updated with an image pull, no reboot.
 
 Changes land through a pull request and successful CI runs for the affected
