@@ -112,8 +112,6 @@ CI runs [toolchain smoke tests](tests/smoke.sh) and a
 [Rawhide RPM build](tests/mock-build.sh) before publishing.
 The Rawhide test changes files in its disposable container. Do not run it in
 your working toolbox.
-The [capacity test](https://github.com/samcday/workstation-config/actions/runs/38682068775)
-built this image on a standard GitHub-hosted runner.
 
 ## Add packages
 
