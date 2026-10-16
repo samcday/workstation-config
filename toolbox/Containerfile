@@ -32,9 +32,10 @@ RUN --mount=type=cache,id=toolbox-dnfcache,destination=/var/cache/libdnf5 \
     rm -f /tmp/packages.list
 
 # Tools shipped only as GitHub releases (oras, cfssl, k9s, sops).
+# COPY makes script changes invalidate the layer cache on older Buildah versions.
+COPY install-binaries.sh /tmp/install-binaries.sh
 RUN --mount=type=cache,id=toolbox-dnfcache,destination=/var/cache/libdnf5 \
-    --mount=type=bind,source=install-binaries.sh,target=/tmp/install-binaries.sh \
-    sh /tmp/install-binaries.sh
+    sh /tmp/install-binaries.sh && rm -f /tmp/install-binaries.sh
 
 # Keep Mock's bootstrap chroot, but populate it with DNF rather than nested
 # Podman. Toolbox shares host IPC and cannot use host-root-owned Podman locks.

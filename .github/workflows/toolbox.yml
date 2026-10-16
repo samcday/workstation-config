@@ -79,9 +79,17 @@ jobs:
 
       - name: Build image
         id: build
+        env:
+          NO_CACHE: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
         run: |
+          # Share intermediate layers across PR/main runners.
+          # Weekly/manual builds refresh live RPM repositories even if FROM is unchanged.
+          cache="$REGISTRY/$IMAGE_NAME/build-cache-toolbox"
           start=$SECONDS
           /usr/bin/time -v podman build --format docker \
+            --pull=always --layers --cache-ttl=168h --no-cache="$NO_CACHE" \
+            --authfile "${DOCKER_CONFIG:-$HOME/.docker}/config.json" \
+            --cache-from "$cache" --cache-to "$cache" \
             -t "$REGISTRY/$IMAGE_NAME/toolbox:$TAG" toolbox/
           echo "seconds=$((SECONDS - start))" >> "$GITHUB_OUTPUT"
           podman image inspect "$REGISTRY/$IMAGE_NAME/toolbox:$TAG" > "$RUNNER_TEMP/toolbox-inspect.json"
