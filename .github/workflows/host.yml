@@ -106,6 +106,15 @@ jobs:
           sudo rm -rf -- "$RECHUNK_LOCATION"
           df -h / /var/lib/containers
 
+      - name: Check Nix mount point on a read-only root
+        run: |
+          # Earlier rootful steps can leave the default crun state inaccessible.
+          # Isolate only OCI runtime state, not Podman's loaded image storage.
+          runtime_root=$(mktemp -d "$RUNNER_TEMP/nix-mountpoint-crun.XXXXXX")
+          trap 'rm -rf -- "$runtime_root"' EXIT
+          podman --runtime-flag "root=$runtime_root" run --rm --network=none --read-only \
+            -i --entrypoint /bin/sh "$REGISTRY/$IMAGE_NAME:$TAG" < host/tests/nix-mountpoint.sh
+
       - name: Push to GHCR
         uses: redhat-actions/push-to-registry@94ade333c38ecc0e60e94785125d9a52ca423b37 # v3.0.0
         id: push
